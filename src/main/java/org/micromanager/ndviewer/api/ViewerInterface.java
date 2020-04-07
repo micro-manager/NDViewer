@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 import javax.swing.JPanel;
-import org.json.JSONObject;
+import mmcorej.org.json.JSONObject;
 import org.micromanager.ndviewer.main.NDViewer;
 import org.micromanager.ndviewer.overlay.Overlay;
 

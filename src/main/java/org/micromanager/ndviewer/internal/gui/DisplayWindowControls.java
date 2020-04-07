@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionListener;
-import org.json.JSONObject;
+import mmcorej.org.json.JSONObject;
 import org.micromanager.ndviewer.api.ControlsPanelInterface;
 import org.micromanager.ndviewer.main.NDViewer;
 

@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.TreeMap;
 import mmcorej.TaggedImage;
-import org.json.JSONObject;
+import mmcorej.org.json.JSONObject;
 import org.micromanager.ndviewer.internal.gui.contrast.DisplaySettings;
 import org.micromanager.ndviewer.main.NDViewer;
 import org.micromanager.ndviewer.api.DataSourceInterface;

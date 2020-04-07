@@ -26,7 +26,7 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import org.json.JSONObject;
+import mmcorej.org.json.JSONObject;
 import org.micromanager.ndviewer.main.NDViewer;
 import org.micromanager.ndviewer.overlay.Overlay;
 import org.micromanager.ndviewer.api.CanvasMouseListenerInterface;

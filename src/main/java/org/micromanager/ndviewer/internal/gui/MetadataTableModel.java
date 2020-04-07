@@ -9,8 +9,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Vector;
 import javax.swing.table.AbstractTableModel;
-import org.json.JSONException;
-import org.json.JSONObject;
+import mmcorej.org.json.JSONException;
+import mmcorej.org.json.JSONObject;
 
 /**
  *

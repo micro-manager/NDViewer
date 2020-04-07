@@ -6,7 +6,7 @@
 package org.micromanager.ndviewer.internal.gui;
 
 import java.util.Timer;
-import org.json.JSONObject;
+import mmcorej.org.json.JSONObject;
 
 /**
  *
