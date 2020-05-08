@@ -165,7 +165,6 @@ public interface ViewerInterface {
     * set the offset of the top left displayed pixel to relative to top left of
     * the full image (in full resolution coordinates)
     *
-    * @return
     */
    public void setViewOffset(double newX, double newY);
 
