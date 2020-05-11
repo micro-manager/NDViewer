@@ -20,7 +20,7 @@ public interface OverlayerPlugin {
 
    /**
     * Called whenever the overlay needs to be drawn. Once it is ready, it should
-    * be passed to the viewer by calling {@link NDViewer.setOverlay}
+    * be passed to the viewer by calling {@link org.micromanager.ndviewer.main.NDViewer#setOverlay(Overlay)}
     * 
     * @param defaultOverlay The base overlay which should be added onto
     * @param displayImageSize 

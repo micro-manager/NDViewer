@@ -58,9 +58,8 @@ public class TextRoi extends Roi {
    /**
     * Creates a TextRoi using the specified location and Font.
     *
-    * @see ij.gui.Roi#setStrokeColor
-    * @see ij.gui.Roi#setNonScalable
-    * @see ij.ImagePlus#setOverlay(ij.gui.Overlay)
+    * @see Roi#setStrokeColor
+    * @see Roi#setNonScalable
     */
    public TextRoi(int x, int y, String text, Font font) {
       super(x, y, 1, 1);

@@ -299,7 +299,6 @@ public class NDViewer implements ViewerInterface {
     *
     * @param axesPositions Hashmap of axis labels to positions
     * @param channelName
-    * @param bitDepth
     */
    public void newImageArrived(HashMap<String, Integer> axesPositions,
            String channelName) {

@@ -27,7 +27,7 @@ public interface DataSourceInterface {
     *
     * @param axes Map of axes to indices (e.g. "z": 0, "t": 1) (Note: no position
     * needed for channels as this is automatically inferred
-    * @param resolutionIndex Index in level of multiresolution pyramid. (0 is
+    * @param resolutionindex Index in level of multiresolution pyramid. (0 is
     * full resolution, 1 is downsampled by 2x, 2 is downsampled by 4x, etc
     * @param xOffset leftmost pixel at the requested resolution
     * @param yOffset rightmost pixel at the requested resolution

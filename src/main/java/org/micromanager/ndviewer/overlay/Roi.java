@@ -241,10 +241,6 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
    /**
     * Returns the outline of this selection as a Polygon, or null if this is a
     * straight line selection.
-    *
-    * @see ij.process.ImageProcessor#setRoi
-    * @see ij.process.ImageProcessor#drawPolygon
-    * @see ij.process.ImageProcessor#fillPolygon
     */
    public Polygon getPolygon() {
       int[] xpoints = new int[4];
@@ -388,7 +384,6 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
     *
     * @see #getStrokeColor
     * @see #setStrokeWidth
-    * @see ij.ImagePlus#setOverlay(ij.gui.Overlay)
     */
    public void setStrokeColor(Color c) {
       strokeColor = c;
@@ -458,7 +453,6 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
     * magnification.
     *
     * @see #setStrokeColor(Color)
-    * @see ij.ImagePlus#setOverlay(ij.gui.Overlay)
     */
    public void setStrokeWidth(float width) {
       if (width < 0f) {
@@ -554,7 +548,7 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
     * ROI is only displayed when the stack is at the specified position. Set to
     * zero to have the ROI displayed on all images in the stack.
     *
-    * @see ij.gui.Overlay
+    * @see Overlay
     */
    public void setPosition(int n) {
       if (n < 0) {
@@ -568,7 +562,7 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
     * Returns the stack position (image number) of this ROI, or zero if the ROI
     * is not associated with a particular stack image.
     *
-    * @see ij.gui.Overlay
+    * @see Overlay
     */
    public int getPosition() {
       return position;
@@ -578,7 +572,7 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
     * Sets the hyperstack position of this ROI. In an overlay, this ROI is only
     * displayed when the hyperstack is at the specified position.
     *
-    * @see ij.gui.Overlay
+    * @see Overlay
     */
    public void setPosition(int channel, int slice, int frame) {
       if (channel < 0) {

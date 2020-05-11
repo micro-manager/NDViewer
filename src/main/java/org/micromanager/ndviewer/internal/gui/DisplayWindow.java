@@ -163,9 +163,8 @@ public class DisplayWindow implements WindowListener {
    }
 
    /**
-    * CAlled on EDT. Update image and make sure scrollers are in right positions
+    * Called on EDT. Update image and make sure scrollers are in right positions
     *
-    * @param images
     */
    public void displayImage(Image image, HashMap<String, int[]> hists, HashMap<String, Integer> mins, HashMap<String, Integer> maxs, DataViewCoords view) {
       //Make scrollbars reflect image
