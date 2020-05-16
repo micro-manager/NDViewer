@@ -692,7 +692,7 @@ public class NDViewer implements ViewerInterface {
                @Override
                public void run() {
                   a.abort(); //it may already be aborted but call this again to be sure
-                  a.close();
+                  a.waitForCompletion();
                }
             }, "NDViewer Acquisition closing thread").start();
 
