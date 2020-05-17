@@ -95,7 +95,7 @@ public class NDViewer implements ViewerInterface {
       double initialHeight = bounds == null ? 700 : bounds[3] - bounds[1];
       viewCoords_ = new DataViewCoords(cache, null, 0, 0,
               initialWidth, initialHeight, dataSource_.getBounds());
-      displayWindow_ = new DisplayWindow(this);
+      displayWindow_ = new DisplayWindow(this, acq == null);
       overlayer_ = new BaseOverlayer(this);
       imageMaker_ = new ImageMaker(this, cache);
    }
