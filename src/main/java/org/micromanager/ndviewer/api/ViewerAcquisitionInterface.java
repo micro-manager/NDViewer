@@ -23,6 +23,6 @@ public interface ViewerAcquisitionInterface {
 
    public boolean isPaused();
 
-   public void close();
+   public void waitForCompletion();
    
 }

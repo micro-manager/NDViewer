@@ -95,7 +95,7 @@ public class NDViewer implements ViewerInterface {
       double initialHeight = bounds == null ? 700 : bounds[3] - bounds[1];
       viewCoords_ = new DataViewCoords(cache, null, 0, 0,
               initialWidth, initialHeight, dataSource_.getBounds());
-      displayWindow_ = new DisplayWindow(this);
+      displayWindow_ = new DisplayWindow(this, acq == null);
       overlayer_ = new BaseOverlayer(this);
       imageMaker_ = new ImageMaker(this, cache);
    }
@@ -692,7 +692,7 @@ public class NDViewer implements ViewerInterface {
                @Override
                public void run() {
                   a.abort(); //it may already be aborted but call this again to be sure
-                  a.close();
+                  a.waitForCompletion();
                }
             }, "NDViewer Acquisition closing thread").start();
 

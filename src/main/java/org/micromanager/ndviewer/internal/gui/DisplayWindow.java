@@ -51,14 +51,14 @@ public class DisplayWindow implements WindowListener {
    JFrame window_;
    private CanvasMouseListenerInterface listener_;
 
-   public DisplayWindow(NDViewer display) {
+   public DisplayWindow(NDViewer display, boolean nullAcq) {
       window_ = new JFrame();
 
       display_ = display;
       window_.setSize(1500, 800);
       window_.setVisible(true);
       window_.addWindowListener(this);
-      buildInitialUI();
+      buildInitialUI(nullAcq);
       setupMouseListeners();
       setupKeyListeners();
    }
@@ -116,7 +116,7 @@ public class DisplayWindow implements WindowListener {
       }
    }
 
-   private void buildInitialUI() {
+   private void buildInitialUI(boolean nullAcq) {
       window_.setLayout(new BorderLayout());
 
       imageCanvas_ = new ViewerCanvas(display_);
@@ -127,7 +127,7 @@ public class DisplayWindow implements WindowListener {
       leftPanel_.add(subImageControls_, BorderLayout.PAGE_END);
       window_.add(leftPanel_, BorderLayout.CENTER);
 
-      sideControls_ = new DisplayWindowControls(display_, null);
+      sideControls_ = new DisplayWindowControls(display_, null, nullAcq);
       JPanel buttonPanel = new FixedWidthJPanel();
       collapseExpandButton_ = new JButton();
 

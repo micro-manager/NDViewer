@@ -28,7 +28,7 @@ class DisplayWindowControls extends javax.swing.JPanel {
    /**
     * Creates new form DisplayWindowControls
     */
-   public DisplayWindowControls(NDViewer disp, List<JPanel> additionalPanels) {
+   public DisplayWindowControls(NDViewer disp, List<JPanel> additionalPanels, boolean nullAcq) {
       display_ = disp;
       initComponents();
       metadataPanelMagellan_.setSummaryMetadata(disp.getSummaryMD());
@@ -36,6 +36,10 @@ class DisplayWindowControls extends javax.swing.JPanel {
 
       //Always start showing contrast
       tabbedPane_.setSelectedIndex(0);
+      if (nullAcq) {
+         abortButton_.setVisible(false);
+         pauseButton_.setVisible(false);
+      }
    }
 
    void addControlPanel(ControlsPanelInterface panel) {
