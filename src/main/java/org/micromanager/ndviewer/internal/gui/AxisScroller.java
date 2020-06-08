@@ -57,7 +57,8 @@ public class AxisScroller extends JPanel {
    private JScrollBar scrollbar_;
    private ScrollbarLockIcon lock_;
 
-   private int minOffset_ = 0;
+   private Integer minIndex_ = null;
+   private Integer maxIndex_ = null;
    private AdjustmentListener adjustmentListener_;
 
    ScrollerPanel scrollerPanel_;
@@ -121,9 +122,6 @@ public class AxisScroller extends JPanel {
       animateIcon_ = null;
    }
 
-   public JScrollBar getScrollBar() {
-      return scrollbar_;
-   }
 
    public void superlock() {
       lock_.setLockedState(ScrollbarLockIcon.LockedState.SUPERLOCKED);
@@ -167,16 +165,12 @@ public class AxisScroller extends JPanel {
 //      display_.postEvent(new AnimationToggleEvent(this, isAnimated_));
    }
 
-   public boolean getIsAnimated() {
-      return isAnimated_;
-   }
-
    public boolean getIsSuperlocked() {
       return lock_.getLockedState() == ScrollbarLockIcon.LockedState.SUPERLOCKED;
    }
 
    public int getPosition() {
-      return scrollbar_.getValue() + minOffset_;
+      return scrollbar_.getValue() + minIndex_;
    }
 
    /**
@@ -186,7 +180,7 @@ public class AxisScroller extends JPanel {
     */
    public void setPosition(int position) {
       scrollbar_.removeAdjustmentListener(adjustmentListener_);
-      scrollbar_.setValue(position - minOffset_);
+      scrollbar_.setValue(position - minIndex_);
       scrollbar_.addAdjustmentListener(adjustmentListener_);
    }
 
@@ -195,20 +189,41 @@ public class AxisScroller extends JPanel {
    }
 
    public int getMinimum() {
-      return scrollbar_.getMinimum() + minOffset_;
+      return scrollbar_.getMinimum() + minIndex_;
    }
 
-   public void setMinimum(int newMin) {
+   public void expandDisplayRangeIfNeeded(int imagePosition) {
       scrollbar_.removeAdjustmentListener(adjustmentListener_);
-      int expandBy = Math.max(0, minOffset_ - newMin);
-      scrollbar_.setMaximum(scrollbar_.getMaximum() + expandBy);
-      minOffset_ = newMin;
+      if (minIndex_ == null  || maxIndex_ == null) {
+         minIndex_ = imagePosition;
+         maxIndex_ = imagePosition;
+      }
+      //Image position can be negative, but min and max must be positive
+      minIndex_ = Math.min(imagePosition, minIndex_);
+      maxIndex_ = Math.max(imagePosition, maxIndex_);
+
+      scrollbar_.setMaximum(Math.max(maxIndex_ - minIndex_ + 1, scrollbar_.getMaximum()));
+      scrollbar_.setMinimum(Math.max(0, Math.min(imagePosition, minIndex_)));
+
       scrollbar_.addAdjustmentListener(adjustmentListener_);
    }
 
-   public void setMaximum(int newMax) {
-      scrollbar_.removeAdjustmentListener(adjustmentListener_);
-      scrollbar_.setMaximum(newMax - minOffset_);
-      scrollbar_.addAdjustmentListener(adjustmentListener_);
+   public boolean isInitialized() {
+      return minIndex_ != null || maxIndex_ != null;
+   }
+
+   public boolean isOutOfRange(int imagePosition) {
+      if (imagePosition < minIndex_) {
+         return true;
+      }
+      if (imagePosition > maxIndex_) {
+         return true;
+      }
+      return false;
+   }
+
+   public void initialize(int imagePosition) {
+      minIndex_ = imagePosition;
+      maxIndex_ = imagePosition;
    }
 }

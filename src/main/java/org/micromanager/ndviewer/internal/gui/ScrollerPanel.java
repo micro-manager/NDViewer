@@ -178,16 +178,19 @@ class ScrollerPanel extends JPanel {
                continue; //these events have no information pertinent to this scroller
             }
             int imagePosition = axes.get(scroller.getAxis());
-            if (scroller.getMaximum() <= imagePosition || scroller.getMinimum() > imagePosition) {
+            if (!scroller.isInitialized()) {
+               scroller.initialize(imagePosition);
+            }
+            if (scroller.isOutOfRange(imagePosition)) {
                if (!scroller.isVisible()) {
                   // This scroller was previously hidden and needs to be shown now.
                   scroller.setVisible(true);
                   add(scroller, "wrap 0px, align center, growx");
                   didShowNewScrollers = true;
                }
-               // xpand display range
-               scroller.setMaximum(Math.max(imagePosition + 1, scroller.getMaximum()));
-               scroller.setMinimum(Math.min(imagePosition, scroller.getMinimum()));
+               // expand display range
+               scroller.expandDisplayRangeIfNeeded(imagePosition);
+
             }
 
          }
@@ -225,15 +228,15 @@ class ScrollerPanel extends JPanel {
       return 0;
    }
 
-   /**
-    * Resize scroller to new maximum size
-    */
-   public void setMaxPosition(String axis, int max) {
-      for (AxisScroller scroller : scrollers_) {
-         if (scroller.getAxis().equals(axis)) {
-            scroller.setMaximum(max);
-         }
-      }
-   }
+//   /**
+//    * Resize scroller to new maximum size
+//    */
+//   public void setMaxPosition(String axis, int max) {
+//      for (AxisScroller scroller : scrollers_) {
+//         if (scroller.getAxis().equals(axis)) {
+//            scroller.setMaximum(max);
+//         }
+//      }
+//   }
 
 }
