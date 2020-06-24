@@ -117,7 +117,7 @@ class DisplayWindowControls extends javax.swing.JPanel {
       metadataPanel_.setLayout(metadataPanel_Layout);
       metadataPanel_Layout.setHorizontalGroup(
          metadataPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addComponent(metadataPanelMagellan_, javax.swing.GroupLayout.DEFAULT_SIZE, 648, Short.MAX_VALUE)
+         .addComponent(metadataPanelMagellan_, javax.swing.GroupLayout.DEFAULT_SIZE, 670, Short.MAX_VALUE)
       );
       metadataPanel_Layout.setVerticalGroup(
          metadataPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -193,19 +193,19 @@ class DisplayWindowControls extends javax.swing.JPanel {
       topControlPanel_Layout.setHorizontalGroup(
          topControlPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
          .addGroup(topControlPanel_Layout.createSequentialGroup()
-            .addGap(116, 116, 116)
+            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(fpsLabel_)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(animationFPSSpinner_, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(lockScrollbarsCheckBox_)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(scaleBarCheckBox_)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(timeCheckBox_)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(zPositiionCheckBox_)
-            .addContainerGap(36, Short.MAX_VALUE))
+            .addContainerGap())
          .addGroup(topControlPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(topControlPanel_Layout.createSequentialGroup()
                .addContainerGap()
@@ -214,7 +214,7 @@ class DisplayWindowControls extends javax.swing.JPanel {
                .addComponent(abortButton_)
                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                .addComponent(pauseButton_)
-               .addContainerGap(500, Short.MAX_VALUE)))
+               .addContainerGap(516, Short.MAX_VALUE)))
       );
       topControlPanel_Layout.setVerticalGroup(
          topControlPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -242,11 +242,8 @@ class DisplayWindowControls extends javax.swing.JPanel {
       this.setLayout(layout);
       layout.setHorizontalGroup(
          layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addGroup(layout.createSequentialGroup()
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-               .addComponent(tabbedPane_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-               .addComponent(topControlPanel_, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+         .addComponent(tabbedPane_)
+         .addComponent(topControlPanel_, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
       );
       layout.setVerticalGroup(
          layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
