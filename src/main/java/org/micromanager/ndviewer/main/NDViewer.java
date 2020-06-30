@@ -129,7 +129,7 @@ public class NDViewer implements ViewerInterface {
    }
 
    public static Preferences getPreferences() {
-      return Preferences.systemNodeForPackage(NDViewer.class);
+      return Preferences.userNodeForPackage(NDViewer.class);
    }
 
    public void pan(int dx, int dy) {
