@@ -359,7 +359,9 @@ public class NDViewer implements ViewerInterface {
          }
       }
       //Set channel
-      viewCoords_.setActiveChannel(channelIndices_.get(axes.get("channel")));
+      if (axes.containsKey("channel")) {
+         viewCoords_.setActiveChannel(channelIndices_.get(axes.get("channel")));
+      }
       //Update other channels if in single channel view mode
       if (!displaySettings_.isCompositeMode()) {
          //set all channels inactive except current one
