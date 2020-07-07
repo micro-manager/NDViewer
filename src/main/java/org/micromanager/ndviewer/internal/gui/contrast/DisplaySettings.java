@@ -191,6 +191,9 @@ public class DisplaySettings {
    }
 
    public void setColor(String channelName, Color color) {
+      if (color == null) {
+         return;
+      }
       synchronized (this) {
          try {
             if (!json_.has(channelName)) {
