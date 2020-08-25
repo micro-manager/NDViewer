@@ -130,9 +130,9 @@ final class MultiChannelHistograms extends JPanel {
       return ccpList_.size();
    }
 
-   void updateHistogramData(HashMap<String, int[]> hists, HashMap<String, Integer> mins, HashMap<String, Integer> maxs) {
+   void updateHistogramData(HashMap<String, int[]> hists) {
       for (String i : hists.keySet()) {
-         ccpList_.get(i).updateHistogram(hists.get(i), mins.get(i), maxs.get(i));             
+         ccpList_.get(i).updateHistogram(hists.get(i));
       }
    }
 }

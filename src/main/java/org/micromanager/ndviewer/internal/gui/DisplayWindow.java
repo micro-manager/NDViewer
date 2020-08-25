@@ -166,11 +166,11 @@ public class DisplayWindow implements WindowListener {
     * Called on EDT. Update image and make sure scrollers are in right positions
     *
     */
-   public void displayImage(Image image, HashMap<String, int[]> hists, HashMap<String, Integer> mins, HashMap<String, Integer> maxs, DataViewCoords view) {
+   public void displayImage(Image image, HashMap<String, int[]> hists, DataViewCoords view) {
       //Make scrollbars reflect image
       subImageControls_.updateScrollerPositions(view);
       imageCanvas_.updateDisplayImage(image, view.getMagnificationFromResLevel());
-      sideControls_.updateHistogramData(hists, mins, maxs);
+      sideControls_.updateHistogramData(hists);
    }
 
    public void displayOverlay(Overlay overlay) {

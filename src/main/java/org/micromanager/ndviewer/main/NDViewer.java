@@ -769,10 +769,8 @@ public class NDViewer implements ViewerInterface {
          currentMetadata_ = tags;
 
          HashMap<String, int[]> channelHistograms = imageMaker_.getHistograms();
-         HashMap<String, Integer> pixelMins = imageMaker_.getPixelMins();
-         HashMap<String, Integer> pixelMaxs = imageMaker_.getPixelMaxs();
          edtRunnablePool_.invokeAsLateAsPossibleWithCoalescence(new CanvasRepaintRunnable(img,
-                 channelHistograms, pixelMins, pixelMaxs, view_, tags));
+                 channelHistograms, view_, tags));
          //now send expensive overlay computation to overlay creation thread
 //         overlayer_.redrawOverlay(view_, overlayerPlugin_);
       }
@@ -783,17 +781,13 @@ public class NDViewer implements ViewerInterface {
       final Image img_;
       DataViewCoords view_;
       HashMap<String, int[]> hists_;
-      HashMap<String, Integer> mins_;
-      HashMap<String, Integer> maxs_;
       JSONObject imageMD_;
 
-      public CanvasRepaintRunnable(Image img, HashMap<String, int[]> hists, HashMap<String, Integer> pixelMins,
-              HashMap<String, Integer> pixelMaxs, DataViewCoords view, JSONObject imageMD) {
+      public CanvasRepaintRunnable(Image img, HashMap<String, int[]> hists,
+                                   DataViewCoords view, JSONObject imageMD) {
          img_ = img;
          view_ = view;
          hists_ = hists;
-         mins_ = pixelMins;
-         maxs_ = pixelMaxs;
          imageMD_ = imageMD;
       }
 
@@ -809,7 +803,7 @@ public class NDViewer implements ViewerInterface {
 
       @Override
       public void run() {
-         displayWindow_.displayImage(img_, hists_, mins_, maxs_, view_);
+         displayWindow_.displayImage(img_, hists_, view_);
          displayWindow_.setImageMetadata(imageMD_);
          overlayer_.createOverlay(view_, overlayerPlugin_);
          displayWindow_.repaintCanvas();

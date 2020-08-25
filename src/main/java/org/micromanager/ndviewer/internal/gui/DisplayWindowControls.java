@@ -55,8 +55,8 @@ class DisplayWindowControls extends javax.swing.JPanel {
       cpMagellan_.onDisplayClose();
    }
 
-   void updateHistogramData(HashMap<String, int[]> hists, HashMap<String, Integer> mins, HashMap<String, Integer> maxs) {
-      cpMagellan_.updateHistogramData(hists, mins, maxs);
+   void updateHistogramData(HashMap<String, int[]> hists) {
+      cpMagellan_.updateHistogramData(hists);
    }
 
    public void addContrastControls(String channelName) {
