@@ -279,6 +279,9 @@ class ChannelControlPanel extends JPanel implements CursorListener {
                g.setColor(Color.black);
                g.setFont(new Font("Lucida Grande", 0, 10));
                g.drawString(histMaxLabel_, this.getSize().width - 8 * histMaxLabel_.length(), this.getSize().height);
+            } else {
+               g.setColor(super.getBackground());
+               g.fillRect(super.getX(), super.getY(), super.getWidth(), super.getHeight());
             }
          }
       };
