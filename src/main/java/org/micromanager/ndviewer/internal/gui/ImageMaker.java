@@ -1,6 +1,5 @@
 package org.micromanager.ndviewer.internal.gui;
 
-import org.micromanager.ndviewer.internal.gui.DataViewCoords;
 import org.micromanager.ndviewer.internal.gui.contrast.HistogramUtils;
 import org.micromanager.ndviewer.internal.gui.contrast.LUT;
 import java.awt.Color;
@@ -27,7 +26,7 @@ public class ImageMaker {
    public static final int EIGHTBIT = 0;
    public static final int SIXTEENBIT = 1;
 
-   private final TreeMap<String, MagellanImageProcessor> channelProcessors_ = new TreeMap<String, MagellanImageProcessor>();
+   private final TreeMap<String, NDVImageProcessor> channelProcessors_ = new TreeMap<String, NDVImageProcessor>();
 
    private int imageWidth_, imageHeight_;
    private int[] rgbPixels_;
@@ -72,7 +71,7 @@ public class ImageMaker {
          //create channel processors as needed
          synchronized (this) {
             if (!channelProcessors_.containsKey(channel)) {
-               channelProcessors_.put(channel, new MagellanImageProcessor(imageWidth_, imageHeight_, channel));
+               channelProcessors_.put(channel, new NDVImageProcessor(imageWidth_, imageHeight_, channel));
             }
          }
          if (!display_.getDisplaySettingsObject().isActive(channel)) {
@@ -90,7 +89,7 @@ public class ImageMaker {
          TaggedImage imageForDisplay = imageCache_.getImageForDisplay(
                  axes, viewCoords.getResolutionIndex(),
                  viewOffsetAtResX, viewOffsetAtResY, imagePixelWidth, imagePixelHeight);
-                 
+
                  
          if (viewCoords.getActiveChannel().equals(channel)) {
             latestTags_ = imageForDisplay.tags;
@@ -197,28 +196,12 @@ public class ImageMaker {
    public HashMap<String, int[]> getHistograms() {
       HashMap<String, int[]> hists = new HashMap<String, int[]>();
       for (String channel : channelProcessors_.keySet()) {
-         hists.put(channel, channelProcessors_.get(channel).displayHistogram_);
+         hists.put(channel, channelProcessors_.get(channel).rawHistogram);
       }
       return hists;
    }
 
-   public HashMap<String, Integer> getPixelMins() {
-      HashMap<String, Integer> hists = new HashMap<String, Integer>();
-      for (String i : channelProcessors_.keySet()) {
-         hists.put(i, channelProcessors_.get(i).pixelMin_);
-      }
-      return hists;
-   }
-
-   public HashMap<String, Integer> getPixelMaxs() {
-      HashMap<String, Integer> hists = new HashMap<String, Integer>();
-      for (String i : channelProcessors_.keySet()) {
-         hists.put(i, channelProcessors_.get(i).pixelMax_);
-      }
-      return hists;
-   }
-
-   private class MagellanImageProcessor {
+   private class NDVImageProcessor {
 
       LUT lut;
       int contrastMin_, contrastMax_;
@@ -231,9 +214,8 @@ public class ImageMaker {
       int[] greens = null;
       int[] rawHistogram = null;
       final String channelName_;
-      int[] displayHistogram_;
 
-      public MagellanImageProcessor(int w, int h, String name) {
+      public NDVImageProcessor(int w, int h, String name) {
          width = w;
          height = h;
          channelName_ = name;
@@ -282,22 +264,16 @@ public class ImageMaker {
          pixelMax_ = 0;
          int binSize = rawHistogram.length / 256;
          int numBins = (int) Math.min(rawHistogram.length / binSize, DisplaySettings.NUM_DISPLAY_HIST_BINS);
-         displayHistogram_ = new int[DisplaySettings.NUM_DISPLAY_HIST_BINS];
          for (int i = 0; i < numBins; i++) {
-            displayHistogram_[i] = 0;
             for (int j = 0; j < binSize; j++) {
                int rawHistIndex = (int) (i * binSize + j);
                int rawHistVal = rawHistogram[rawHistIndex];
-               displayHistogram_[i] += rawHistVal;
                if (rawHistVal > 0) {
                   pixelMax_ = rawHistIndex;
                   if (pixelMin_ == -1) {
                      pixelMin_ = rawHistIndex;
                   }
                }
-            }
-            if (display_.getDisplaySettingsObject().isLogHistogram()) {
-               displayHistogram_[i] = displayHistogram_[i] > 0 ? (int) (1000 * Math.log(displayHistogram_[i])) : 0;
             }
          }
          maxAfterRejectingOutliers_ = (int) totalPixels;

@@ -293,17 +293,39 @@ class ChannelControlPanel extends JPanel implements CursorListener {
       return hp;
    }
 
-   public void updateHistogram(int[] histogram, int pixelMin, int pixelMax) {
-      pixelMin_ = pixelMin;
-      pixelMax_ = pixelMax;
+   public void updateHistogram(int[] rawHistogram) {
       hp_.setVisible(true);
       //Draw histogram and stats
       GraphData histogramData = new GraphData();
-      histogramData.setData(histogram);
+      // Convert from full histogram to display histogram
+      pixelMin_ = -1;
+      pixelMax_ = 0;
+      int binSize = rawHistogram.length == 256 ? 1 : (int) (Math.pow(2, bitDepth_ - 8));
+      int numBins = (int) Math.min(rawHistogram.length / binSize, DisplaySettings.NUM_DISPLAY_HIST_BINS);
+      int[] displayHistogram_ = new int[DisplaySettings.NUM_DISPLAY_HIST_BINS];
+      for (int i = 0; i < numBins; i++) {
+         displayHistogram_[i] = 0;
+         for (int j = 0; j < binSize; j++) {
+            int rawHistIndex = (int) (i * binSize + j);
+            int rawHistVal = rawHistogram[rawHistIndex];
+            displayHistogram_[i] += rawHistVal;
+            if (rawHistVal > 0) {
+               pixelMax_ = rawHistIndex;
+               if (pixelMin_ == -1) {
+                  pixelMin_ = rawHistIndex;
+               }
+            }
+         }
+         if (display_.getDisplaySettingsObject().isLogHistogram()) {
+            displayHistogram_[i] = displayHistogram_[i] > 0 ? (int) (1000 * Math.log(displayHistogram_[i])) : 0;
+         }
+      }
+
+      histogramData.setData(displayHistogram_);
       hp_.setData(histogramData);
       hp_.setAutoScale();
       hp_.repaint();
-      minMaxLabel_.setText("Min: " + pixelMin + "   " + "Max: " + pixelMax);
+      minMaxLabel_.setText("Min: " + pixelMin_ + "   " + "Max: " + pixelMax_);
       redraw();
 
    }

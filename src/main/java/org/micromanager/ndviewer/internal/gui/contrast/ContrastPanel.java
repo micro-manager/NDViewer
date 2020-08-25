@@ -305,8 +305,8 @@ public class ContrastPanel extends JPanel {
       saveCheckBoxStates();
    }
 
-   public void updateHistogramData(HashMap<String, int[]> hists, HashMap<String, Integer> mins, HashMap<String, Integer> maxs) {
-      histograms_.updateHistogramData(hists, mins, maxs);
+   public void updateHistogramData(HashMap<String, int[]> hists) {
+      histograms_.updateHistogramData(hists);
    }
 
    public void displaySettingsChanged() {
