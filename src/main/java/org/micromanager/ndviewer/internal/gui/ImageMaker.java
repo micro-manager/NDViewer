@@ -57,7 +57,7 @@ public class ImageMaker {
     * @return
     */
    public Image makeOrGetImage(DataViewCoords viewCoords) {
-      boolean remakeDisplayImage = false; //remake the acutal Imge object if size has changed, otherwise just set pixels
+      boolean remakeDisplayImage = false; //remake the actual Iamge object if size has changed, otherwise just set pixels
       if (viewCoords.getSourceImageSizeAtResLevel().x != imageWidth_
               || viewCoords.getSourceImageSizeAtResLevel().y != imageHeight_) {
          imageWidth_ = (int) viewCoords.getSourceImageSizeAtResLevel().x;
@@ -71,7 +71,8 @@ public class ImageMaker {
          //create channel processors as needed
          synchronized (this) {
             if (!channelProcessors_.containsKey(channel)) {
-               channelProcessors_.put(channel, new NDVImageProcessor(imageWidth_, imageHeight_, channel));
+               channelProcessors_.put(channel, viewCoords.isRGB() ? new NDVImageProcessorRGB(imageWidth_, imageHeight_, channel) :
+                       new NDVImageProcessor(imageWidth_, imageHeight_, channel) );
             }
          }
          if (!display_.getDisplaySettingsObject().isActive(channel)) {
@@ -90,7 +91,7 @@ public class ImageMaker {
                  axes, viewCoords.getResolutionIndex(),
                  viewOffsetAtResX, viewOffsetAtResY, imagePixelWidth, imagePixelHeight);
 
-                 
+
          if (viewCoords.getActiveChannel().equals(channel)) {
             latestTags_ = imageForDisplay.tags;
          }
@@ -103,7 +104,7 @@ public class ImageMaker {
          Arrays.fill(rgbPixels_, 0);
          int redValue, greenValue, blueValue;
          for (String c : channelProcessors_.keySet()) {
-            if (!display_.getDisplaySettingsObject().isActive(c) ) {
+            if (!display_.getDisplaySettingsObject().isActive(c)) {
                continue;
             }
             String channelName = c;
@@ -112,35 +113,70 @@ public class ImageMaker {
 
                //recompute 8 bit image
                channelProcessors_.get(c).recompute();
-               byte[] bytes;
-               bytes = channelProcessors_.get(c).eightBitImage;
                if (firstActive) {
-                  for (int p = 0; p < imageWidth_ * imageHeight_; p++) {
-                     redValue = channelProcessors_.get(c).reds[bytes[p] & 0xff];
-                     greenValue = channelProcessors_.get(c).greens[bytes[p] & 0xff];
-                     blueValue = channelProcessors_.get(c).blues[bytes[p] & 0xff];
-                     rgbPixels_[p] = redValue | greenValue | blueValue;
+                  if (channelProcessors_.get(c) instanceof NDVImageProcessorRGB) {
+                     byte[] bytesR = ((NDVImageProcessorRGB) channelProcessors_.get(c)).rProcessor_.eightBitImage;
+                     byte[] bytesG = ((NDVImageProcessorRGB) channelProcessors_.get(c)).gProcessor_.eightBitImage;
+                     byte[] bytesB = ((NDVImageProcessorRGB) channelProcessors_.get(c)).bProcessor_.eightBitImage;
+                     for (int p = 0; p < imageWidth_ * imageHeight_; p++) {
+                        redValue = ((NDVImageProcessorRGB) channelProcessors_.get(c)).rProcessor_.reds[bytesR[p] & 0xff];
+                        greenValue = ((NDVImageProcessorRGB) channelProcessors_.get(c)).gProcessor_.greens[bytesG[p] & 0xff];
+                        blueValue = ((NDVImageProcessorRGB) channelProcessors_.get(c)).bProcessor_.blues[bytesB[p] & 0xff];
+                        rgbPixels_[p] = redValue | greenValue | blueValue;
+                     }
+                  } else {
+                     byte[] bytes = channelProcessors_.get(c).eightBitImage;
+                     for (int p = 0; p < imageWidth_ * imageHeight_; p++) {
+                        redValue = channelProcessors_.get(c).reds[bytes[p] & 0xff];
+                        greenValue = channelProcessors_.get(c).greens[bytes[p] & 0xff];
+                        blueValue = channelProcessors_.get(c).blues[bytes[p] & 0xff];
+                        rgbPixels_[p] = redValue | greenValue | blueValue;
+                     }
                   }
                   firstActive = false;
                } else {
+                  //add subsequent channels onto the first one
                   int pixel;
-                  for (int p = 0; p < imageWidth_ * imageHeight_; p++) {
-                     pixel = rgbPixels_[p];
-                     redValue = (pixel & 0x00ff0000) + channelProcessors_.get(c).reds[bytes[p] & 0xff];
-                     greenValue = (pixel & 0x0000ff00) + channelProcessors_.get(c).greens[bytes[p] & 0xff];
-                     blueValue = (pixel & 0x000000ff) + channelProcessors_.get(c).blues[bytes[p] & 0xff];
+                  if (channelProcessors_.get(c) instanceof NDVImageProcessorRGB) {
+                     byte[] bytesR = ((NDVImageProcessorRGB) channelProcessors_.get(c)).rProcessor_.eightBitImage;
+                     byte[] bytesG = ((NDVImageProcessorRGB) channelProcessors_.get(c)).gProcessor_.eightBitImage;
+                     byte[] bytesB = ((NDVImageProcessorRGB) channelProcessors_.get(c)).bProcessor_.eightBitImage;
+                     for (int p = 0; p < imageWidth_ * imageHeight_; p++) {
+                        pixel = rgbPixels_[p];
+                        redValue = (pixel & 0x00ff0000) + ((NDVImageProcessorRGB) channelProcessors_.get(c)).rProcessor_.reds[bytesR[p] & 0xff];
+                        greenValue = (pixel & 0x0000ff00) + ((NDVImageProcessorRGB) channelProcessors_.get(c)).gProcessor_.greens[bytesG[p] & 0xff];
+                        blueValue = (pixel & 0x000000ff) + ((NDVImageProcessorRGB) channelProcessors_.get(c)).bProcessor_.blues[bytesB[p] & 0xff];
 
-                     if (redValue > 16711680) {
-                        redValue = 16711680;
+                        if (redValue > 16711680) {
+                           redValue = 16711680;
+                        }
+                        if (greenValue > 65280) {
+                           greenValue = 65280;
+                        }
+                        if (blueValue > 255) {
+                           blueValue = 255;
+                        }
+                        rgbPixels_[p] = redValue | greenValue | blueValue;
                      }
-                     if (greenValue > 65280) {
-                        greenValue = 65280;
-                     }
-                     if (blueValue > 255) {
-                        blueValue = 255;
-                     }
-                     rgbPixels_[p] = redValue | greenValue | blueValue;
+                  } else {
+                     byte[] bytes = channelProcessors_.get(c).eightBitImage;
+                     for (int p = 0; p < imageWidth_ * imageHeight_; p++) {
+                        pixel = rgbPixels_[p];
+                        redValue = (pixel & 0x00ff0000) + channelProcessors_.get(c).reds[bytes[p] & 0xff];
+                        greenValue = (pixel & 0x0000ff00) + channelProcessors_.get(c).greens[bytes[p] & 0xff];
+                        blueValue = (pixel & 0x000000ff) + channelProcessors_.get(c).blues[bytes[p] & 0xff];
 
+                        if (redValue > 16711680) {
+                           redValue = 16711680;
+                        }
+                        if (greenValue > 65280) {
+                           greenValue = 65280;
+                        }
+                        if (blueValue > 255) {
+                           blueValue = 255;
+                        }
+                        rgbPixels_[p] = redValue | greenValue | blueValue;
+                     }
                   }
                }
             }
@@ -160,15 +196,6 @@ public class ImageMaker {
          imageSource_.newPixels(rgbPixels_, rgbCM_, 0, imageWidth_);
       }
       return displayImage_;
-//			newPixels = false;
-
-//      DirectColorModel rgbCM = new DirectColorModel(24, 0xff0000, 0xff00, 0xff);
-//      WritableRaster wr = rgbCM.createCompatibleWritableRaster(1, 1);
-//      SampleModel sampleModel = wr.getSampleModel();
-//      sampleModel = sampleModel.createCompatibleSampleModel(imageWidth_, imageHeight_);
-//      DataBuffer dataBuffer = new DataBufferInt(rgbPixels_, imageWidth_ * imageHeight_, 0);
-//      WritableRaster rgbRaster = Raster.createWritableRaster(sampleModel, dataBuffer, null);
-//      return new BufferedImage(rgbCM, rgbRaster, false, null);
    }
 
    public static LUT makeLUT(Color color, double gamma) {
@@ -199,6 +226,81 @@ public class ImageMaker {
          hists.put(channel, channelProcessors_.get(channel).rawHistogram);
       }
       return hists;
+   }
+
+   private class NDVImageProcessorRGB extends NDVImageProcessor {
+
+      private NDVImageProcessor rProcessor_, bProcessor_, gProcessor_;
+
+      public NDVImageProcessorRGB(int w, int h, String name) {
+         super(w, h, name);
+         rProcessor_ = new NDVImageProcessor(w, h, name);
+         gProcessor_ = new NDVImageProcessor(w, h, name);
+         bProcessor_ = new NDVImageProcessor(w, h, name);
+      }
+
+      public void changePixels(Object pix, int w, int h) {
+         byte[] rPix = new byte[w * h];
+         byte[] gPix = new byte[w * h];
+         byte[] bPix = new byte[w * h];
+         for (int i = 0; i < w * h; i++) {
+            bPix[i] = ((byte[]) pix)[3 * i];
+            gPix[i] = ((byte[]) pix)[3 * i + 1];
+            rPix[i] = ((byte[]) pix)[3 * i + 2];
+         }
+
+         rProcessor_.changePixels(rPix, w, h);
+         gProcessor_.changePixels(gPix, w, h);
+         bProcessor_.changePixels(bPix, w, h);
+      }
+
+      public void recompute() {
+            contrastMin_ = display_.getDisplaySettingsObject().getContrastMin(channelName_);
+            contrastMax_ = display_.getDisplaySettingsObject().getContrastMax(channelName_);
+            rProcessor_.contrastMin_ = contrastMin_;
+            rProcessor_.contrastMax_ = contrastMax_;
+            gProcessor_.contrastMin_ = contrastMin_;
+            gProcessor_.contrastMax_ = contrastMax_;
+            bProcessor_.contrastMin_ = contrastMin_;
+            bProcessor_.contrastMax_ = contrastMax_;
+            rProcessor_.create8BitImage();
+            gProcessor_.create8BitImage();
+            bProcessor_.create8BitImage();
+            rawHistogram = new int[rProcessor_.rawHistogram.length];
+            for (int i = 0; i < rawHistogram.length; i++) {
+               rawHistogram[i] += rProcessor_.rawHistogram[i];
+               rawHistogram[i] += gProcessor_.rawHistogram[i];
+               rawHistogram[i] += bProcessor_.rawHistogram[i];
+            }
+            if (display_.getDisplaySettingsObject().getAutoscale()) {
+               if (display_.getDisplaySettingsObject().ignoreFractionOn()) {
+                  contrastMax_ = maxAfterRejectingOutliers_;
+                  contrastMin_ = minAfterRejectingOutliers_;
+               } else {
+                  contrastMin_ = pixelMin_;
+                  contrastMax_ = pixelMax_;
+               }
+               display_.getDisplaySettingsObject().setContrastMin(channelName_, contrastMin_);
+               display_.getDisplaySettingsObject().setContrastMax(channelName_, contrastMax_);
+               //need to redo this with autoscaled contrast now
+               rProcessor_.create8BitImage();
+               gProcessor_.create8BitImage();
+               bProcessor_.create8BitImage();
+               //Merge the histograms of R, G, and B
+               rawHistogram = new int[rProcessor_.rawHistogram.length];
+               for (int i = 0; i < rawHistogram.length; i++) {
+                  rawHistogram[i] += rProcessor_.rawHistogram[i];
+                  rawHistogram[i] += gProcessor_.rawHistogram[i];
+                  rawHistogram[i] += bProcessor_.rawHistogram[i];
+               }
+            }
+            rProcessor_.lut = makeLUT(Color.red, display_.getDisplaySettingsObject().getContrastGamma(channelName_));
+            gProcessor_.lut = makeLUT(Color.green, display_.getDisplaySettingsObject().getContrastGamma(channelName_));
+            bProcessor_.lut = makeLUT(Color.blue, display_.getDisplaySettingsObject().getContrastGamma(channelName_));
+         rProcessor_.splitLUTRGB();
+         gProcessor_.splitLUTRGB();
+         bProcessor_.splitLUTRGB();
+      }
    }
 
    private class NDVImageProcessor {
@@ -233,7 +335,7 @@ public class ImageMaker {
          contrastMin_ = display_.getDisplaySettingsObject().getContrastMin(channelName_);
          contrastMax_ = display_.getDisplaySettingsObject().getContrastMax(channelName_);
          create8BitImage();
-         processHistogram();
+         processHistogram(rawHistogram);
          if (display_.getDisplaySettingsObject().getAutoscale()) {
             if (display_.getDisplaySettingsObject().ignoreFractionOn()) {
                contrastMax_ = maxAfterRejectingOutliers_;
@@ -246,14 +348,14 @@ public class ImageMaker {
             display_.getDisplaySettingsObject().setContrastMax(channelName_, contrastMax_);
             //need to redo this with autoscaled contrast now
             create8BitImage();
-            processHistogram();
+            processHistogram(rawHistogram);
          }
-         lut = makeLUT(display_.getDisplaySettingsObject().getColor(channelName_), 
+         lut = makeLUT(display_.getDisplaySettingsObject().getColor(channelName_),
                  display_.getDisplaySettingsObject().getContrastGamma(channelName_));
          splitLUTRGB();
       }
 
-      private void processHistogram() {
+      private void processHistogram(int[] rawHistogram) {
          //Compute stats
          int totalPixels = 0;
          for (int i = 0; i < rawHistogram.length; i++) {
@@ -326,7 +428,7 @@ public class ImageMaker {
                value = pixVal - contrastMin_;
                rawHistogram[pixVal]++;
             } else {
-               int pixVal = (((byte[]) pixels)[i] & 0xffff);
+               int pixVal = (((byte[]) pixels)[i] & 0xff);
                value = pixVal - contrastMin_;
                rawHistogram[pixVal]++;
             }
