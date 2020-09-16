@@ -26,18 +26,20 @@ public class DataViewCoords {
    private int resolutionIndex_;
    private DataSourceInterface cache_;
    private String currentChannel_;
+   private boolean rgb_;
 
    //Parameters that track what part of the dataset is being viewed
    public int xMax_, yMax_, xMin_, yMin_;
 
    public DataViewCoords(DataSourceInterface cache, String currentChannel, double xView, double yView,
-           double initialWidth, double initialHeight, int[] imageBounds) {
+           double initialWidth, double initialHeight, int[] imageBounds, boolean rgb) {
       currentChannel_ = currentChannel;
       cache_ = cache;
       xView_ = 0;
       yView_ = 0;
       sourceDataFullResWidth_ = initialWidth;
       sourceDataFullResHeight_ = initialHeight;
+      rgb_ = rgb;
       setImageBounds(imageBounds);
    }
 
@@ -61,6 +63,10 @@ public class DataViewCoords {
     */
    public Point2D.Double getSourceImageSizeAtResLevel() {
       return new Point2D.Double(sourceDataFullResWidth_ / getDownsampleFactor(), sourceDataFullResHeight_ / getDownsampleFactor());
+   }
+
+   public boolean isRGB() {
+      return rgb_;
    }
 
    public void setFullResSourceDataSize(double newWidth, double newHeight) {
@@ -139,7 +145,7 @@ public class DataViewCoords {
 
    public DataViewCoords copy() {
       DataViewCoords view = new DataViewCoords(cache_, currentChannel_, xView_, yView_,
-              sourceDataFullResWidth_, sourceDataFullResHeight_, new int[]{xMin_, yMin_, xMax_, yMax_});
+              sourceDataFullResWidth_, sourceDataFullResHeight_, new int[]{xMin_, yMin_, xMax_, yMax_}, rgb_);
       for (String channel : channelNames_) {
          view.channelNames_.add(channel);
       }
@@ -151,6 +157,7 @@ public class DataViewCoords {
       view.currentChannel_ = currentChannel_;
       view.xView_ = xView_;
       view.yView_ = yView_;
+      view.rgb_ = rgb_;
       view.resolutionIndex_ = resolutionIndex_;
       view.overlayMode_ = overlayMode_;
       return view;
@@ -158,14 +165,6 @@ public class DataViewCoords {
 
    public String getActiveChannel() {
       return currentChannel_;
-   }
-
-   public int getOverlayMode() {
-      return overlayMode_;
-   }
-
-   public void setOverlayMode(int mode) {
-      overlayMode_ = mode;
    }
 
    public HashMap<String, Integer> getAxesPositions() {

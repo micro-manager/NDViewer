@@ -84,7 +84,7 @@ public class NDViewer implements ViewerInterface {
    private OverlayerPlugin overlayerPlugin_;
 
    public NDViewer(DataSourceInterface cache, ViewerAcquisitionInterface acq, JSONObject summaryMD,
-           double pixelSize) {
+           double pixelSize, boolean rgb) {
       pixelSizeUm_ = pixelSize; //TODO: Could be replaced later with per image pixel size
       summaryMetadata_ = summaryMD;
       dataSource_ = cache;
@@ -94,7 +94,7 @@ public class NDViewer implements ViewerInterface {
       double initialWidth = bounds == null ? 700 : bounds[2] - bounds[0];
       double initialHeight = bounds == null ? 700 : bounds[3] - bounds[1];
       viewCoords_ = new DataViewCoords(cache, null, 0, 0,
-              initialWidth, initialHeight, dataSource_.getBounds());
+              initialWidth, initialHeight, dataSource_.getBounds(), rgb);
       displayWindow_ = new DisplayWindow(this, acq == null);
       overlayer_ = new BaseOverlayer(this);
       imageMaker_ = new ImageMaker(this, cache);
@@ -472,10 +472,6 @@ public class NDViewer implements ViewerInterface {
       displayWindow_.displayOverlay(overlay);
    }
 
-   void setOverlayMode(int mode) {
-      viewCoords_.setOverlayMode(mode);
-   }
-
    public void redrawOverlay() {
       //this will automatically trigger overlay redrawing in a coalescent fashion
       displayCalculationExecutor_.invokeAsLateAsPossibleWithCoalescence(new DisplayImageComputationRunnable());
@@ -584,7 +580,11 @@ public class NDViewer implements ViewerInterface {
       if (readZFunction_ == null) {
          return "Z metadata reader undefined";
       } else {
-         return "" + readZFunction_.apply(currentMetadata_) + " \u00B5" + "m";
+         try {
+            return "" + readZFunction_.apply(currentMetadata_) + " \u00B5" + "m";
+         } catch (Exception e) {
+            return  "";
+         }
       }
    }
 
