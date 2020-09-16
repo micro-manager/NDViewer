@@ -580,7 +580,11 @@ public class NDViewer implements ViewerInterface {
       if (readZFunction_ == null) {
          return "Z metadata reader undefined";
       } else {
-         return "" + readZFunction_.apply(currentMetadata_) + " \u00B5" + "m";
+         try {
+            return "" + readZFunction_.apply(currentMetadata_) + " \u00B5" + "m";
+         } catch (Exception e) {
+            return  "";
+         }
       }
    }
 
