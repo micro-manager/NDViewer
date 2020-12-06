@@ -8,9 +8,11 @@ import java.awt.image.IndexColorModel;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.image.MemoryImageSource;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
 import mmcorej.TaggedImage;
 import mmcorej.org.json.JSONObject;
 import org.micromanager.ndviewer.internal.gui.contrast.DisplaySettings;
@@ -52,6 +54,35 @@ public class ImageMaker {
    }
 
    /**
+    * The axes requested correspond to every scrollbar in the viewer. But all axes dont have to apply
+    * to every channel (for example, a maximum intensity projection doesnt have z axis). So search
+    * through all axes currently stored for this channel, and delete any axes from the request that arent present
+    * @return
+    */
+   private TaggedImage getDisplayImage(HashMap<String, Integer> axes,
+                                         int resolutionindex, double xOffset, double yOffset,
+                                         int imageWidth, int imageHeight) {
+
+      Set<HashMap<String, Integer>> allAxes = imageCache_.getStoredAxes();
+      HashSet<String> axesInChannel = new HashSet<String>();
+      for (HashMap<String, Integer> storedAxes : allAxes) {
+         if (storedAxes.containsKey("channel") && axes.containsKey("channel") &&
+                 storedAxes.get("channel").equals(axes.get("channel"))) {
+               axesInChannel.addAll(storedAxes.keySet());
+            }
+      }
+      String[] requestedAxes = axes.keySet().toArray(new String[0]);
+      for (String axis : requestedAxes) {
+         if (!axis.equals("channel") && !axesInChannel.contains(axis)) {
+            axes.remove(axis);
+         }
+      }
+
+      return imageCache_.getImageForDisplay(
+              axes, resolutionindex, xOffset, yOffset, imageWidth, imageHeight);
+   }
+
+   /**
     * Do neccesary calcualtion to get image for display
     *
     * @return
@@ -87,10 +118,8 @@ public class ImageMaker {
          //replace channel axis position with the specific channel 
          HashMap<String, Integer> axes = new HashMap<String, Integer>(viewCoords.getAxesPositions());
          axes.put("channel", display_.getChannelIndex(channel));
-         TaggedImage imageForDisplay = imageCache_.getImageForDisplay(
-                 axes, viewCoords.getResolutionIndex(),
+         TaggedImage imageForDisplay = getDisplayImage(axes, viewCoords.getResolutionIndex(),
                  viewOffsetAtResX, viewOffsetAtResY, imagePixelWidth, imagePixelHeight);
-
 
          if (viewCoords.getActiveChannel().equals(channel)) {
             latestTags_ = imageForDisplay.tags;
