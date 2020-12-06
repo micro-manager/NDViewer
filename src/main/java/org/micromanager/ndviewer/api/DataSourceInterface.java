@@ -6,6 +6,8 @@
 package org.micromanager.ndviewer.api;
 
 import java.util.HashMap;
+import java.util.Set;
+
 import mmcorej.TaggedImage;
 
 /**
@@ -38,6 +40,12 @@ public interface DataSourceInterface {
    public TaggedImage getImageForDisplay(HashMap<String, Integer> axes,
            int resolutionindex, double xOffset, double yOffset,
            int imageWidth, int imageHeight);
+
+   /**
+    * Get the axes of all available images in this dataset
+    * @return
+    */
+   public Set<HashMap<String, Integer>> getStoredAxes();
 
    /**
     * Index of the log 2 biggest downsample factor in the pyramid 0 is full
