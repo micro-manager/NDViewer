@@ -22,7 +22,7 @@ import org.micromanager.ndviewer.overlay.Overlay;
  * is to call {@link #newImageArrived(java.util.HashMap, java.lang.String) 
  * newImageArrived} method each time a new image is available. It may also
  * be helpful to call {@link #setChannelDisplaySettings(java.lang.String, java.awt.Color, int) 
- * setChannelDisplaySettings} before each image arrives to initialize preferred
+ * bitDepth} before each image arrives to initialize preferred
  * contrast controls
  * 
  */

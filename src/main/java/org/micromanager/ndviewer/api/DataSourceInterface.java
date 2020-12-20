@@ -11,7 +11,7 @@ import java.util.Set;
 import mmcorej.TaggedImage;
 
 /**
- * Interface for a multiresolution data source
+ * Interface for a source of image data. This data can be multi-resolution, though this isn't required
  *
  * @author henrypinkard
  */
