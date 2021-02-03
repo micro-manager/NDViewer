@@ -361,20 +361,21 @@ public class ImageMaker {
       }
 
       public void recompute() {
-         contrastMin_ = display_.getDisplaySettingsObject().getContrastMin(channelName_);
-         contrastMax_ = display_.getDisplaySettingsObject().getContrastMax(channelName_);
+         DisplaySettings ds = display_.getDisplaySettingsObject();
+         contrastMin_ = ds.getContrastMin(channelName_);
+         contrastMax_ = ds.getContrastMax(channelName_);
          create8BitImage();
          processHistogram(rawHistogram);
-         if (display_.getDisplaySettingsObject().getAutoscale()) {
-            if (display_.getDisplaySettingsObject().ignoreFractionOn()) {
+         if (ds.getAutoscale()) {
+            if (ds.ignoreFractionOn()) {
                contrastMax_ = maxAfterRejectingOutliers_;
                contrastMin_ = minAfterRejectingOutliers_;
             } else {
                contrastMin_ = pixelMin_;
                contrastMax_ = pixelMax_;
             }
-            display_.getDisplaySettingsObject().setContrastMin(channelName_, contrastMin_);
-            display_.getDisplaySettingsObject().setContrastMax(channelName_, contrastMax_);
+            ds.setContrastMin(channelName_, contrastMin_);
+            ds.setContrastMax(channelName_, contrastMax_);
             //need to redo this with autoscaled contrast now
             create8BitImage();
             processHistogram(rawHistogram);
@@ -409,8 +410,13 @@ public class ImageMaker {
          }
          maxAfterRejectingOutliers_ = (int) totalPixels;
          // specified percent of pixels are ignored in the automatic contrast setting
-         HistogramUtils hu = new HistogramUtils(rawHistogram, totalPixels, 0.01 * 
-                 display_.getDisplaySettingsObject().percentToIgnore());
+         double percentToIgnore = 0.0;
+         try  {
+            percentToIgnore = display_.getDisplaySettingsObject().percentToIgnore();
+         } catch (Exception e) {
+            System.err.println(e);
+         }
+         HistogramUtils hu = new HistogramUtils(rawHistogram, totalPixels, 0.01 * percentToIgnore);
          minAfterRejectingOutliers_ = hu.getMinAfterRejectingOutliers();
          maxAfterRejectingOutliers_ = hu.getMaxAfterRejectingOutliers();
 

@@ -38,13 +38,18 @@ public class DisplaySettings {
    private static final String COMPOSITE = "Display all channels";
    private static final String SYNC_CHANNELS = "Sync all channels";
    private static final String IGNORE_OUTLIERS = "Ignore outliers";
-   private static final String IGNORE_PERCENTAGE = "gnore outlier percentage";
+   private static final String IGNORE_PERCENTAGE = "Ignore outlier percentage";
 
    private final JSONObject json_;
 
    //for reading from disk
    public DisplaySettings(JSONObject json) {
-      json_ = json;
+      if (json == null) {
+         System.err.println("Warning: Display settings missing");
+         json_ = new DisplaySettings().toJSON();
+      } else {
+         json_ = json;
+      }
    }
 
    public JSONObject toJSON() {
@@ -128,6 +133,9 @@ public class DisplaySettings {
    public int getBitDepth(String channelName) {
       synchronized (this) {
          try {
+            if (!json_.has(channelName)) {
+               addChannel(channelName);
+            }
             return json_.getJSONObject(channelName).optInt("BitDepth", 16);
          } catch (Exception ex) {
             System.err.println("bitdepth missing from display settings");

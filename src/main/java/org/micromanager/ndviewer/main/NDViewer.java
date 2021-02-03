@@ -397,6 +397,9 @@ public class NDViewer implements ViewerInterface {
    }
 
    public void update() {
+      if (displayCalculationExecutor_ == null) {
+         return; // Not yet initialized
+      }
       displayCalculationExecutor_.invokeAsLateAsPossibleWithCoalescence(new DisplayImageComputationRunnable());
    }
 
@@ -745,10 +748,12 @@ public class NDViewer implements ViewerInterface {
 
    private class DisplayImageComputationRunnable implements CoalescentRunnable {
 
-      DataViewCoords view_;
+      DataViewCoords view_ = null;
 
       public DisplayImageComputationRunnable() {
-         view_ = viewCoords_.copy();
+         if (viewCoords_ != null) {
+            view_ = viewCoords_.copy();
+         }
       }
 
       @Override
@@ -763,6 +768,9 @@ public class NDViewer implements ViewerInterface {
 
       @Override
       public void run() {
+         if (view_ == null) {
+            return;
+         }
          //This is where most of the calculation of creating a display image happens
          Image img = imageMaker_.makeOrGetImage(view_);
          JSONObject tags = imageMaker_.getLatestTags();
