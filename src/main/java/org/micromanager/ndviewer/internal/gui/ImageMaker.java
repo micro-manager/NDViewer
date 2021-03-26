@@ -273,9 +273,9 @@ public class ImageMaker {
          byte[] gPix = new byte[w * h];
          byte[] bPix = new byte[w * h];
          for (int i = 0; i < w * h; i++) {
-            bPix[i] = ((byte[]) pix)[4 * i + 1];
-            gPix[i] = ((byte[]) pix)[4 * i + 2];
-            rPix[i] = ((byte[]) pix)[4 * i + 3];
+            bPix[i] = ((byte[]) pix)[4 * i ];
+            gPix[i] = ((byte[]) pix)[4 * i + 1];
+            rPix[i] = ((byte[]) pix)[4 * i + 2];
          }
 
          rProcessor_.changePixels(rPix, w, h);
