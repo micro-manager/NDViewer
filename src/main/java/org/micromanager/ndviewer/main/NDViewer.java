@@ -698,6 +698,7 @@ public class NDViewer implements ViewerInterface {
                public void run() {
                   a.abort(); //it may already be aborted but call this again to be sure
                   a.waitForCompletion();
+                  dataSource_.close();
                }
             }, "NDViewer Acquisition closing thread").start();
 
@@ -723,7 +724,6 @@ public class NDViewer implements ViewerInterface {
          if (animationTimer_ != null) {
             animationTimer_.stop();
          }
-         dataSource_.close();
          animationTimer_ = null;
          dataSource_ = null;
          displayWindow_ = null;
