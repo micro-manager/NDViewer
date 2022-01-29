@@ -91,10 +91,10 @@ public class NDViewer implements ViewerInterface {
       acq_ = acq;
       displaySettings_ = new DisplaySettings();
       int[] bounds = cache.getBounds();
-      double initialWidth = bounds == null ? 700 : bounds[2] - bounds[0];
-      double initialHeight = bounds == null ? 700 : bounds[3] - bounds[1];
       viewCoords_ = new DataViewCoords(cache, null, 0, 0,
-              initialWidth, initialHeight, dataSource_.getBounds(), rgb);
+              bounds == null ? null : (double) (bounds[2] - bounds[0]),
+              bounds == null ? null : (double) (bounds[3] - bounds[1]),
+              dataSource_.getBounds(), rgb);
       displayWindow_ = new DisplayWindow(this, acq == null);
       overlayer_ = new BaseOverlayer(this);
       imageMaker_ = new ImageMaker(this, cache);

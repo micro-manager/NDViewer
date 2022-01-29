@@ -27,24 +27,37 @@ public class DataViewCoords {
    private DataSourceInterface cache_;
    private String currentChannel_;
    private boolean rgb_;
+   private boolean sourceDataWidthInitialized_ = false;
 
    //Parameters that track what part of the dataset is being viewed
    public int xMax_, yMax_, xMin_, yMin_;
 
    public DataViewCoords(DataSourceInterface cache, String currentChannel, double xView, double yView,
-           double initialWidth, double initialHeight, int[] imageBounds, boolean rgb) {
+           Double initialWidth, Double initialHeight, int[] imageBounds, boolean rgb) {
       currentChannel_ = currentChannel;
       cache_ = cache;
       xView_ = 0;
       yView_ = 0;
-      sourceDataFullResWidth_ = initialWidth;
-      sourceDataFullResHeight_ = initialHeight;
+      if (initialWidth == null) {
+         sourceDataFullResWidth_ = 700;
+         sourceDataFullResHeight_ = 700;
+         sourceDataWidthInitialized_ = false;
+      } else {
+         sourceDataFullResWidth_ = initialWidth;
+         sourceDataFullResHeight_ = initialHeight;
+         sourceDataWidthInitialized_ = true;
+      }
       rgb_ = rgb;
       setImageBounds(imageBounds);
    }
 
    public void setImageBounds(int[] bounds) {
       if (bounds != null) {
+         if (bounds != null && !sourceDataWidthInitialized_ && bounds[0] != Integer.MIN_VALUE) {
+            sourceDataFullResWidth_ = bounds[2] - bounds[0];
+            sourceDataFullResHeight_ = bounds[3] - bounds[1];
+            sourceDataWidthInitialized_ = true;
+         }
          xMin_ = bounds[0];
          yMin_ = bounds[1];
          xMax_ = bounds[2];
@@ -160,6 +173,7 @@ public class DataViewCoords {
       view.rgb_ = rgb_;
       view.resolutionIndex_ = resolutionIndex_;
       view.overlayMode_ = overlayMode_;
+      view.sourceDataWidthInitialized_ = sourceDataWidthInitialized_;
       return view;
    }
 
