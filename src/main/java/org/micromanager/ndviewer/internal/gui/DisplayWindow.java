@@ -5,6 +5,7 @@
  */
 package org.micromanager.ndviewer.internal.gui;
 
+import java.util.prefs.Preferences;
 import org.micromanager.ndviewer.internal.gui.TextIcon;
 import org.micromanager.ndviewer.internal.gui.SubImageControls;
 import org.micromanager.ndviewer.internal.gui.RotatedIcon;
@@ -39,6 +40,7 @@ import org.micromanager.ndviewer.api.ControlsPanelInterface;
 public class DisplayWindow implements WindowListener {
 
    //from other window
+   private static final String NDVIEWER = "NDViewer";
    private static final double ZOOM_FACTOR_KEYS = 2.0;
 
    private ViewerCanvas imageCanvas_;
@@ -48,14 +50,16 @@ public class DisplayWindow implements WindowListener {
    private JPanel leftPanel_, rightPanel_;
 
    private NDViewer display_;
+   private final Preferences preferences_;
    JFrame window_;
    private CanvasMouseListenerInterface listener_;
 
    public DisplayWindow(NDViewer display, boolean nullAcq) {
       window_ = new JFrame();
-
+      preferences_ = Preferences.userRoot().node(NDVIEWER);
       display_ = display;
       window_.setSize(1500, 800);
+      WindowPositioning.setUpBoundsMemory(window_, preferences_);
       window_.setVisible(true);
       window_.addWindowListener(this);
       buildInitialUI(nullAcq);
