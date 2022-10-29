@@ -82,14 +82,24 @@ public class NDViewer implements ViewerInterface {
    private volatile JSONObject currentMetadata_;
 
    private OverlayerPlugin overlayerPlugin_;
+   private String preferencesKey_ = "";
 
    public NDViewer(DataSourceInterface cache, ViewerAcquisitionInterface acq, JSONObject summaryMD,
-           double pixelSize, boolean rgb) {
+                   double pixelSize, boolean rgb) {
+      new NDViewer(cache, acq, summaryMD, pixelSize, rgb, null);
+   }
+
+   public NDViewer(DataSourceInterface cache, ViewerAcquisitionInterface acq, JSONObject summaryMD,
+           double pixelSize, boolean rgb, String preferencesKey) {
       pixelSizeUm_ = pixelSize; //TODO: Could be replaced later with per image pixel size
       summaryMetadata_ = summaryMD;
       dataSource_ = cache;
       acq_ = acq;
-      displaySettings_ = new DisplaySettings();
+      preferencesKey_ = preferencesKey;
+      if (preferencesKey_ == null | preferencesKey_.equals("")) {
+         preferencesKey_ = "Default";
+      }
+      displaySettings_ = new DisplaySettings(getPreferences());
       int[] bounds = cache.getBounds();
       viewCoords_ = new DataViewCoords(cache, null, 0, 0,
               bounds == null ? null : (double) (bounds[2] - bounds[0]),
@@ -128,8 +138,8 @@ public class NDViewer implements ViewerInterface {
       return displaySettings_.toJSON();
    }
 
-   public static Preferences getPreferences() {
-      return Preferences.userNodeForPackage(NDViewer.class);
+   public Preferences getPreferences() {
+      return Preferences.userNodeForPackage(NDViewer.class).node(preferencesKey_);
    }
 
    public void pan(int dx, int dy) {
@@ -255,7 +265,7 @@ public class NDViewer implements ViewerInterface {
    public void initializeViewerToLoaded(List<String> channelNames, JSONObject dispSettings,
            HashMap<String, Integer> axisMins, HashMap<String, Integer> axisMaxs) {
 
-      displaySettings_ = new DisplaySettings(dispSettings);
+      displaySettings_ = new DisplaySettings(dispSettings, getPreferences());
       for (int c = 0; c < channelNames.size(); c++) {
          channelIndices_.put(c, channelNames.get(c));
          displayWindow_.addContrastControls(channelNames.get(c));

@@ -21,9 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import mmcorej.org.json.JSONException;
 import mmcorej.org.json.JSONObject;
-import static org.micromanager.ndviewer.main.NDViewer.getPreferences;
 
 public class DisplaySettings {
 
@@ -41,12 +41,14 @@ public class DisplaySettings {
    private static final String IGNORE_PERCENTAGE = "Ignore outlier percentage";
 
    private final JSONObject json_;
+   private Preferences preferences_;
 
    //for reading from disk
-   public DisplaySettings(JSONObject json) {
+   public DisplaySettings(JSONObject json, Preferences preferences) {
+      preferences_ = preferences;
       if (json == null) {
          System.err.println("Warning: Display settings missing");
-         json_ = new DisplaySettings().toJSON();
+         json_ = new DisplaySettings(preferences_).toJSON();
       } else {
          json_ = json;
       }
@@ -61,7 +63,8 @@ public class DisplaySettings {
       }
    }
 
-   public DisplaySettings() {
+   public DisplaySettings(Preferences preferences) {
+      preferences_ = preferences;
       json_ = new JSONObject();
       try {
          JSONObject allChannelSettings = new JSONObject();
@@ -81,8 +84,8 @@ public class DisplaySettings {
    public void addChannel(String cName) {
       try {
          //load from preferences
-         int colorInt = getPreferences().getInt(PREF_KEY_COLOR + cName, -1);
-         int bitDepth = getPreferences().getInt(PREF_KEY_BIT_DEPTH + cName, 16);
+         int colorInt = preferences_.getInt(PREF_KEY_COLOR + cName, -1);
+         int bitDepth = preferences_.getInt(PREF_KEY_BIT_DEPTH + cName, 16);
 
          JSONObject channelDisp = new JSONObject();
          channelDisp.put("Color",
@@ -123,7 +126,7 @@ public class DisplaySettings {
                addChannel(channelName);
             }
             json_.getJSONObject(channelName).put("BitDepth", bitDepth);
-            getPreferences().putInt(PREF_KEY_BIT_DEPTH + channelName, bitDepth);
+            preferences_.putInt(PREF_KEY_BIT_DEPTH + channelName, bitDepth);
          } catch (Exception ex) {
             System.err.println("bitdepth missing from display settings");
          }
@@ -208,7 +211,7 @@ public class DisplaySettings {
                addChannel(channelName);
             }
             json_.getJSONObject(channelName).put("Color", color.getRGB());
-            getPreferences().putInt(PREF_KEY_COLOR + channelName, color.getRGB());
+            preferences_.putInt(PREF_KEY_COLOR + channelName, color.getRGB());
          } catch (Exception ex) {
             System.err.println("Couldnt set display setting");
          }

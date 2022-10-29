@@ -69,7 +69,7 @@ public class ContrastPanel extends JPanel {
       contentPanel_ = createGUI();
       this.setLayout(new BorderLayout());
       this.add(contentPanel_, BorderLayout.CENTER);
-      prefs_ = NDViewer.getPreferences();
+      prefs_ = display.getPreferences();
       initializeHistogramDisplayArea();
       showCurrentHistograms();
       initializing_ = false;

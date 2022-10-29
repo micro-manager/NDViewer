@@ -50,16 +50,14 @@ public class DisplayWindow implements WindowListener {
    private JPanel leftPanel_, rightPanel_;
 
    private NDViewer display_;
-   private final Preferences preferences_;
    JFrame window_;
    private CanvasMouseListenerInterface listener_;
 
    public DisplayWindow(NDViewer display, boolean nullAcq) {
       window_ = new JFrame();
-      preferences_ = Preferences.userRoot().node(NDVIEWER);
       display_ = display;
       window_.setSize(1500, 800);
-      WindowPositioning.setUpBoundsMemory(window_, preferences_);
+      WindowPositioning.setUpBoundsMemory(window_, display.getPreferences());
       window_.setVisible(true);
       window_.addWindowListener(this);
       buildInitialUI(nullAcq);
