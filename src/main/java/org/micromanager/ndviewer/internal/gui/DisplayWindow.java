@@ -1,14 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.micromanager.ndviewer.internal.gui;
 
-import org.micromanager.ndviewer.internal.gui.TextIcon;
-import org.micromanager.ndviewer.internal.gui.SubImageControls;
-import org.micromanager.ndviewer.internal.gui.RotatedIcon;
-import org.micromanager.ndviewer.internal.gui.AxisScroller;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
@@ -27,10 +18,10 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import mmcorej.org.json.JSONObject;
-import org.micromanager.ndviewer.main.NDViewer;
-import org.micromanager.ndviewer.overlay.Overlay;
 import org.micromanager.ndviewer.api.CanvasMouseListenerInterface;
 import org.micromanager.ndviewer.api.ControlsPanelInterface;
+import org.micromanager.ndviewer.main.NDViewer;
+import org.micromanager.ndviewer.overlay.Overlay;
 
 /**
  *
@@ -45,7 +36,8 @@ public class DisplayWindow implements WindowListener {
    private SubImageControls subImageControls_;
    private DisplayWindowControls sideControls_;
    private JButton collapseExpandButton_;
-   private JPanel leftPanel_, rightPanel_;
+   private JPanel leftPanel_;
+   private JPanel rightPanel_;
 
    private NDViewer display_;
    JFrame window_;
@@ -53,9 +45,9 @@ public class DisplayWindow implements WindowListener {
 
    public DisplayWindow(NDViewer display, boolean nullAcq) {
       window_ = new JFrame();
-
       display_ = display;
       window_.setSize(1500, 800);
+      WindowPositioning.setUpBoundsMemory(window_, display.getPreferences());
       window_.setVisible(true);
       window_.addWindowListener(this);
       buildInitialUI(nullAcq);
@@ -66,7 +58,8 @@ public class DisplayWindow implements WindowListener {
    public void onDisplayClose() {
       removeKeyListenersRecursively(window_); //remove added key listeners
 
-      //For some reason these two lines appear to be essential for preventing memory leaks after closing the display
+      // For some reason these two lines appear to be essential for preventing memory leaks
+      // after closing the display
       for (Component c : leftPanel_.getComponents()) {
          leftPanel_.remove(c);
       }
@@ -128,7 +121,7 @@ public class DisplayWindow implements WindowListener {
       window_.add(leftPanel_, BorderLayout.CENTER);
 
       sideControls_ = new DisplayWindowControls(display_, null, nullAcq);
-      JPanel buttonPanel = new FixedWidthJPanel();
+      final JPanel buttonPanel = new FixedWidthJPanel();
       collapseExpandButton_ = new JButton();
 
       TextIcon t1 = new TextIcon(collapseExpandButton_, "Hide controls", TextIcon.Layout.HORIZONTAL);
@@ -139,7 +132,7 @@ public class DisplayWindow implements WindowListener {
          @Override
          public void actionPerformed(ActionEvent e) {
             boolean controlsExpanded = !sideControls_.isVisible();
-//            "\u25c4" : "\u25ba" //left and right arrow
+            //            "\u25c4" : "\u25ba" //left and right arrow
             t1.setText(controlsExpanded ? "Hide controls" : "Show controls");
             collapseOrExpandSideControls(controlsExpanded);
          }

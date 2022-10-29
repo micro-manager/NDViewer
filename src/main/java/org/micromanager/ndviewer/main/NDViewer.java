@@ -11,15 +11,9 @@
 //               IN NO EVENT SHALL THE COPYRIGHT OWNER OR
 //               CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
 //               INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES.
+
 package org.micromanager.ndviewer.main;
 
-import org.micromanager.ndviewer.internal.gui.BaseOverlayer;
-import org.micromanager.ndviewer.internal.gui.contrast.DisplaySettings;
-import org.micromanager.ndviewer.internal.gui.DisplayCoalescentEDTRunnablePool;
-import org.micromanager.ndviewer.internal.gui.CoalescentRunnable;
-import org.micromanager.ndviewer.internal.gui.CoalescentExecutor;
-import org.micromanager.ndviewer.internal.gui.DataViewCoords;
-import org.micromanager.ndviewer.internal.gui.AxisScroller;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.Point;
@@ -32,7 +26,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 import java.util.prefs.Preferences;
 import javax.swing.JOptionPane;
@@ -41,27 +34,36 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import mmcorej.org.json.JSONException;
 import mmcorej.org.json.JSONObject;
-import org.micromanager.ndviewer.api.ViewerInterface;
-import org.micromanager.ndviewer.internal.gui.ViewerCanvas;
-import org.micromanager.ndviewer.internal.gui.DisplayWindow;
-import org.micromanager.ndviewer.internal.gui.ImageMaker;
-import org.micromanager.ndviewer.overlay.Overlay;
-import org.micromanager.ndviewer.api.DataSourceInterface;
 import org.micromanager.ndviewer.api.CanvasMouseListenerInterface;
 import org.micromanager.ndviewer.api.ControlsPanelInterface;
+import org.micromanager.ndviewer.api.DataSourceInterface;
 import org.micromanager.ndviewer.api.OverlayerPlugin;
 import org.micromanager.ndviewer.api.ViewerAcquisitionInterface;
+import org.micromanager.ndviewer.api.ViewerInterface;
+import org.micromanager.ndviewer.internal.gui.AxisScroller;
+import org.micromanager.ndviewer.internal.gui.BaseOverlayer;
+import org.micromanager.ndviewer.internal.gui.CoalescentExecutor;
+import org.micromanager.ndviewer.internal.gui.CoalescentRunnable;
+import org.micromanager.ndviewer.internal.gui.DataViewCoords;
+import org.micromanager.ndviewer.internal.gui.DisplayCoalescentEDTRunnablePool;
+import org.micromanager.ndviewer.internal.gui.DisplayWindow;
+import org.micromanager.ndviewer.internal.gui.ImageMaker;
+import org.micromanager.ndviewer.internal.gui.ViewerCanvas;
+import org.micromanager.ndviewer.internal.gui.contrast.DisplaySettings;
+import org.micromanager.ndviewer.overlay.Overlay;
 
 public class NDViewer implements ViewerInterface {
 
    protected DataSourceInterface dataSource_;
    private DisplaySettings displaySettings_;
 
-   private DisplayCoalescentEDTRunnablePool edtRunnablePool_ = DisplayCoalescentEDTRunnablePool.create();
+   private DisplayCoalescentEDTRunnablePool edtRunnablePool_ =
+         DisplayCoalescentEDTRunnablePool.create();
 
-//   private EventBus eventBus_ = new EventBus(EventBusExceptionLogger.getInstance());
-   private CoalescentExecutor displayCalculationExecutor_ = new CoalescentExecutor("Display calculation executor");
-   private CoalescentExecutor overlayCalculationExecutor_ = new CoalescentExecutor("Overlay calculation executor");
+   private CoalescentExecutor displayCalculationExecutor_ =
+         new CoalescentExecutor("Display calculation executor");
+   private CoalescentExecutor overlayCalculationExecutor_ =
+         new CoalescentExecutor("Overlay calculation executor");
 
    private DisplayWindow displayWindow_;
    private ImageMaker imageMaker_;
@@ -73,7 +75,8 @@ public class NDViewer implements ViewerInterface {
    private volatile ViewerAcquisitionInterface acq_;
    private JSONObject summaryMetadata_;
    private volatile boolean closed_ = false;
-   private ConcurrentHashMap<Integer, String> channelIndices_ = new ConcurrentHashMap<Integer, String>();
+   private ConcurrentHashMap<Integer, String> channelIndices_ =
+         new ConcurrentHashMap<Integer, String>();
 
    private Function<JSONObject, Long> readTimeFunction_ = null;
    private Function<JSONObject, Double> readZFunction_ = null;
@@ -82,14 +85,24 @@ public class NDViewer implements ViewerInterface {
    private volatile JSONObject currentMetadata_;
 
    private OverlayerPlugin overlayerPlugin_;
+   private String preferencesKey_ = "";
 
    public NDViewer(DataSourceInterface cache, ViewerAcquisitionInterface acq, JSONObject summaryMD,
-           double pixelSize, boolean rgb) {
+                   double pixelSize, boolean rgb) {
+      new NDViewer(cache, acq, summaryMD, pixelSize, rgb, null);
+   }
+
+   public NDViewer(DataSourceInterface cache, ViewerAcquisitionInterface acq, JSONObject summaryMD,
+           double pixelSize, boolean rgb, String preferencesKey) {
       pixelSizeUm_ = pixelSize; //TODO: Could be replaced later with per image pixel size
       summaryMetadata_ = summaryMD;
       dataSource_ = cache;
       acq_ = acq;
-      displaySettings_ = new DisplaySettings();
+      preferencesKey_ = preferencesKey;
+      if (preferencesKey_ == null | preferencesKey_.equals("")) {
+         preferencesKey_ = "Default";
+      }
+      displaySettings_ = new DisplaySettings(getPreferences());
       int[] bounds = cache.getBounds();
       viewCoords_ = new DataViewCoords(cache, null, 0, 0,
               bounds == null ? null : (double) (bounds[2] - bounds[0]),
@@ -128,19 +141,23 @@ public class NDViewer implements ViewerInterface {
       return displaySettings_.toJSON();
    }
 
-   public static Preferences getPreferences() {
-      return Preferences.userNodeForPackage(NDViewer.class);
+   public Preferences getPreferences() {
+      return Preferences.userNodeForPackage(NDViewer.class).node(preferencesKey_);
    }
 
    public void pan(int dx, int dy) {
       Point2D.Double offset = viewCoords_.getViewOffset();
-      double newX = offset.x + (dx / viewCoords_.getMagnificationFromResLevel()) * viewCoords_.getDownsampleFactor();
-      double newY = offset.y + (dy / viewCoords_.getMagnificationFromResLevel()) * viewCoords_.getDownsampleFactor();
+      double newX = offset.x + (dx / viewCoords_.getMagnificationFromResLevel())
+            * viewCoords_.getDownsampleFactor();
+      double newY = offset.y + (dy / viewCoords_.getMagnificationFromResLevel())
+            * viewCoords_.getDownsampleFactor();
 
       if (isImageXYBounded()) {
          viewCoords_.setViewOffset(
-                 Math.max(viewCoords_.xMin_, Math.min(newX, viewCoords_.xMax_ - viewCoords_.getFullResSourceDataSize().x)),
-                 Math.max(viewCoords_.yMin_, Math.min(newY, viewCoords_.yMax_ - viewCoords_.getFullResSourceDataSize().y)));
+                 Math.max(viewCoords_.xMin_, Math.min(newX, viewCoords_.xMax_
+                       - viewCoords_.getFullResSourceDataSize().x)),
+                 Math.max(viewCoords_.yMin_, Math.min(newY, viewCoords_.yMax_
+                       - viewCoords_.getFullResSourceDataSize().y)));
       } else {
          viewCoords_.setViewOffset(newX, newY);
       }
@@ -163,11 +180,16 @@ public class NDViewer implements ViewerInterface {
       //compute centroid of the zoom in full res coordinates
       if (mouseLocation == null) {
          //if mouse not over image zoom to center
-         zoomCenter = new Point2D.Double(viewOffset.x + sourceDataSize.y / 2, viewOffset.y + sourceDataSize.y / 2);
+         zoomCenter = new Point2D.Double(viewOffset.x + sourceDataSize.y / 2,
+               viewOffset.y + sourceDataSize.y / 2);
       } else {
          zoomCenter = new Point2D.Double(
-                 (long) viewOffset.x + mouseLocation.x / viewCoords_.getMagnificationFromResLevel() * viewCoords_.getDownsampleFactor(),
-                 (long) viewOffset.y + mouseLocation.y / viewCoords_.getMagnificationFromResLevel() * viewCoords_.getDownsampleFactor());
+                 (long) viewOffset.x + mouseLocation.x
+                       / viewCoords_.getMagnificationFromResLevel()
+                       * viewCoords_.getDownsampleFactor(),
+                 (long) viewOffset.y + mouseLocation.y
+                       / viewCoords_.getMagnificationFromResLevel()
+                       * viewCoords_.getDownsampleFactor());
       }
 
       //Do zooming--update size of source data
@@ -187,13 +209,17 @@ public class NDViewer implements ViewerInterface {
       }
       viewCoords_.setFullResSourceDataSize(newSourceDataWidth, newSourceDataHeight);
 
-      double xOffset = (zoomCenter.x - (zoomCenter.x - viewOffset.x) * newSourceDataWidth / sourceDataSize.x);
-      double yOffset = (zoomCenter.y - (zoomCenter.y - viewOffset.y) * newSourceDataHeight / sourceDataSize.y);
+      double xOffset = (zoomCenter.x - (zoomCenter.x - viewOffset.x)
+            * newSourceDataWidth / sourceDataSize.x);
+      double yOffset = (zoomCenter.y - (zoomCenter.y - viewOffset.y)
+            * newSourceDataHeight / sourceDataSize.y);
       //make sure view doesn't go outside image bounds
       if (isImageXYBounded()) {
          viewCoords_.setViewOffset(
-                 Math.max(viewCoords_.xMin_, Math.min(xOffset, viewCoords_.xMax_ - viewCoords_.getFullResSourceDataSize().x)),
-                 Math.max(viewCoords_.yMin_, Math.min(yOffset, viewCoords_.yMax_ - viewCoords_.getFullResSourceDataSize().y)));
+                 Math.max(viewCoords_.xMin_, Math.min(xOffset,
+                       viewCoords_.xMax_ - viewCoords_.getFullResSourceDataSize().x)),
+                 Math.max(viewCoords_.yMin_, Math.min(yOffset,
+                       viewCoords_.yMax_ - viewCoords_.getFullResSourceDataSize().y)));
       } else {
          viewCoords_.setViewOffset(xOffset, yOffset);
       }
@@ -255,16 +281,16 @@ public class NDViewer implements ViewerInterface {
    public void initializeViewerToLoaded(List<String> channelNames, JSONObject dispSettings,
            HashMap<String, Integer> axisMins, HashMap<String, Integer> axisMaxs) {
 
-      displaySettings_ = new DisplaySettings(dispSettings);
+      displaySettings_ = new DisplaySettings(dispSettings, getPreferences());
       for (int c = 0; c < channelNames.size(); c++) {
          channelIndices_.put(c, channelNames.get(c));
          displayWindow_.addContrastControls(channelNames.get(c));
       }
       //maximum scrollbar extents
-      edtRunnablePool_.invokeLaterWithCoalescence(new NDViewer.ExpandDisplayRangeCoalescentRunnable(axisMaxs,
-              channelNames.get(channelNames.size() - 1)));
-      edtRunnablePool_.invokeLaterWithCoalescence(new NDViewer.ExpandDisplayRangeCoalescentRunnable(axisMins,
-              channelNames.get(channelNames.size() - 1)));
+      edtRunnablePool_.invokeLaterWithCoalescence(new NDViewer.ExpandDisplayRangeCoalescentRunnable(
+            axisMaxs, channelNames.get(channelNames.size() - 1)));
+      edtRunnablePool_.invokeLaterWithCoalescence(new NDViewer.ExpandDisplayRangeCoalescentRunnable(
+            axisMins, channelNames.get(channelNames.size() - 1)));
    }
 
    public void channelSetActive(String channelName, boolean selected) {
@@ -295,7 +321,7 @@ public class NDViewer implements ViewerInterface {
    }
 
    /**
-    * Signal to viewer that a new image is available
+    * Signal to viewer that a new image is available.
     *
     * @param axesPositions Hashmap of axis labels to positions
     * @param channelName
@@ -332,14 +358,11 @@ public class NDViewer implements ViewerInterface {
       edtRunnablePool_.invokeLaterWithCoalescence(
               new NDViewer.ExpandDisplayRangeCoalescentRunnable(axesPositions,
                       channelName));
-
       //move scrollbars to new position
-//      postEvent(new SetImageEvent(axesPositions, false));
-//      setImageEvent(axesPositions, false);
    }
 
    public void setAxisPosition(String axis, int position) {
-      HashMap<String, Integer> axes = new HashMap<String, Integer>();
+      HashMap<String, Integer> axes = new HashMap<>();
       axes.put(axis, position);
       if (axis.equals("channel")) {
          viewCoords_.setActiveChannel(channelIndices_.get(position));
@@ -457,8 +480,6 @@ public class NDViewer implements ViewerInterface {
                  "Finish Current Acquisition", JOptionPane.OK_CANCEL_OPTION);
          if (result == JOptionPane.OK_OPTION) {
             acq_.abort();
-         } else {
-            return;
          }
       }
    }
@@ -477,7 +498,8 @@ public class NDViewer implements ViewerInterface {
 
    public void redrawOverlay() {
       //this will automatically trigger overlay redrawing in a coalescent fashion
-      displayCalculationExecutor_.invokeAsLateAsPossibleWithCoalescence(new DisplayImageComputationRunnable());
+      displayCalculationExecutor_.invokeAsLateAsPossibleWithCoalescence(
+            new DisplayImageComputationRunnable());
    }
 
    public double getMagnification() {
@@ -563,9 +585,9 @@ public class NDViewer implements ViewerInterface {
          return "Time metadata reader undefined";
       } else {
          long elapsed = readTimeFunction_.apply(currentMetadata_);
-         long hours = elapsed / 60 / 60 / 1000,
-                 minutes = elapsed / 60 / 1000,
-                 seconds = elapsed / 1000;
+         long hours = elapsed / 60 / 60 / 1000;
+         long minutes = elapsed / 60 / 1000;
+         long seconds = elapsed / 1000;
 
          minutes = minutes % 60;
          seconds = seconds % 60;
@@ -573,7 +595,8 @@ public class NDViewer implements ViewerInterface {
          String h = ("0" + hours).substring(("0" + hours).length() - 2);
          String m = ("0" + (minutes)).substring(("0" + minutes).length() - 2);
          String s = ("0" + (seconds)).substring(("0" + seconds).length() - 2);
-         String label = h + ":" + m + ":" + s + String.format("%.3f", s_frac).substring(1) + " (H:M:S)";
+         String label = h + ":" + m + ":" + s + String.format("%.3f", s_frac).substring(1)
+               + " (H:M:S)";
 
          return label;
       }
@@ -627,10 +650,11 @@ public class NDViewer implements ViewerInterface {
    private class ExpandDisplayRangeCoalescentRunnable
            implements CoalescentRunnable {
 
-      private final List<HashMap<String, Integer>> newIamgeEvents = new ArrayList<HashMap<String, Integer>>();
+      private final List<HashMap<String, Integer>> newIamgeEvents = new ArrayList<>();
       private final List<String> activeChannels = new ArrayList<String>();
 
-      ExpandDisplayRangeCoalescentRunnable(HashMap<String, Integer> axisPosisitons, String channelIndex) {
+      ExpandDisplayRangeCoalescentRunnable(HashMap<String, Integer> axisPosisitons,
+                                           String channelIndex) {
          newIamgeEvents.add(axisPosisitons);
          activeChannels.add(channelIndex);
       }
@@ -659,7 +683,7 @@ public class NDViewer implements ViewerInterface {
    }
 
    /**
-    * Called when window is x-ed out by user
+    * Called when window is x-ed out by user.
     */
    public void requestToClose() {
       if (!SwingUtilities.isEventDispatchThread()) {
@@ -779,7 +803,6 @@ public class NDViewer implements ViewerInterface {
          edtRunnablePool_.invokeAsLateAsPossibleWithCoalescence(new CanvasRepaintRunnable(img,
                  channelHistograms, view_, tags));
          //now send expensive overlay computation to overlay creation thread
-//         overlayer_.redrawOverlay(view_, overlayerPlugin_);
       }
    }
 
