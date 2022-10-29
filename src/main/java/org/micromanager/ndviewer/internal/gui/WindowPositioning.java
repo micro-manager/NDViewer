@@ -14,7 +14,6 @@
 
 package org.micromanager.ndviewer.internal.gui;
 
-import com.google.common.base.Preconditions;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -267,24 +266,29 @@ public final class WindowPositioning {
 
       static GeometrySaver createAndRestoreBounds(Window window,
                                                   Preferences preferences) {
-         GeometrySaver saver =
-               new GeometrySaver(window, preferences, Mode.MEMORIZE_BOUNDS);
-         saver.restoreGeometry();
-         saver.attachToWindow();
-         return saver;
+         if (window != null && preferences != null) {
+            GeometrySaver saver =
+                  new GeometrySaver(window, preferences, Mode.MEMORIZE_BOUNDS);
+            saver.restoreGeometry();
+            saver.attachToWindow();
+            return saver;
+         }
+         return null;
       }
 
       static GeometrySaver createAndRestoreLocation(Window window,
                                                     Preferences preferences) {
-         GeometrySaver saver =
-               new GeometrySaver(window, preferences, Mode.MEMORIZE_LOCATION);
-         saver.restoreGeometry();
-         saver.attachToWindow();
-         return saver;
+         if (window != null && preferences != null) {
+            GeometrySaver saver =
+                  new GeometrySaver(window, preferences, Mode.MEMORIZE_LOCATION);
+            saver.restoreGeometry();
+            saver.attachToWindow();
+            return saver;
+         }
+         return null;
       }
 
       private GeometrySaver(Window window, Preferences preferences, Mode mode) {
-         Preconditions.checkNotNull(window);
          window_ = window;
          preferences_ = preferences;
          mode_ = mode;
