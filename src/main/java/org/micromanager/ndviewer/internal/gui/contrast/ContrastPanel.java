@@ -19,27 +19,29 @@
 //               CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
 //               INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES.
 //
+
 package org.micromanager.ndviewer.internal.gui.contrast;
 
-import org.micromanager.ndviewer.internal.gui.contrast.HistogramControlsState;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.HashMap;
 import java.util.prefs.Preferences;
-import javax.swing.*;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.micromanager.ndviewer.internal.gui.contrast.MultiChannelHistograms;
-import org.micromanager.ndviewer.main.NDViewer;
 import org.micromanager.ndviewer.main.NDViewer;
 
 /**
- *
  * @author Henry Pinkard This class is a singleton instance of the component in
- * the contrast tab of the metadata panel. It has a single instance of the
- * controls on top, and changes which histograms are displayed based on the
- * frontmost window
+ *     the contrast tab of the metadata panel. It has a single instance of the
+ *     controls on top, and changes which histograms are displayed based on the
+ *     frontmost window
  */
 public class ContrastPanel extends JPanel {
 
@@ -50,13 +52,13 @@ public class ContrastPanel extends JPanel {
    private static final String PREF_SYNC_CHANNELS = "sync_channels";
    private static final String PREF_COMPOSITE = "composite";
    protected JScrollPane histDisplayScrollPane_;
-   private JCheckBox compositeCheckBox_; 
+   private JCheckBox compositeCheckBox_;
    private JCheckBox autostretchCheckBox_;
    private JCheckBox rejectOutliersCheckBox_;
    private JSpinner rejectPercentSpinner_;
    private JCheckBox logHistCheckBox_;
    private JCheckBox syncChannelsCheckBox_;
-   private Preferences prefs_;
+   private final Preferences prefs_;
    protected MultiChannelHistograms histograms_;
    //volatile because accessed by overlayer creation thread
    private NDViewer display_;
@@ -78,17 +80,17 @@ public class ContrastPanel extends JPanel {
    public void onDisplayClose() {
       histograms_.onDisplayClose();
       display_ = null;
-//      this.remove(contentPanel_);
       contentPanel_ = null;
       histograms_ = null;
    }
 
-   public void addContrastControls( String channelName) {
+   public void addContrastControls(String channelName) {
       histograms_.addContrastControls(channelName);
    }
 
    private void initializeHistogramDisplayArea() {
-      histDisplayScrollPane_.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      histDisplayScrollPane_.setHorizontalScrollBarPolicy(
+            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
       histDisplayScrollPane_.getVerticalScrollBar().setUnitIncrement(8);
       showCurrentHistograms();
       configureControls();
@@ -96,11 +98,13 @@ public class ContrastPanel extends JPanel {
 
    private void showCurrentHistograms() {
       histDisplayScrollPane_.setViewportView(
-              histograms_ != null ? (JPanel) histograms_ : new JPanel());
+              histograms_ != null ? histograms_ : new JPanel());
       if (histograms_ != null) {
-         histDisplayScrollPane_.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+         histDisplayScrollPane_.setVerticalScrollBarPolicy(
+               ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
       } else {
-         histDisplayScrollPane_.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+         histDisplayScrollPane_.setVerticalScrollBarPolicy(
+               ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
       }
       this.repaint();
    }
@@ -132,7 +136,8 @@ public class ContrastPanel extends JPanel {
       display_.getDisplaySettingsObject().setAutoscale(autostretchCheckBox_.isSelected());
       display_.getDisplaySettingsObject().setIgnoreOutliers(rejectOutliersCheckBox_.isSelected());
       display_.getDisplaySettingsObject().setLogHist(logHistCheckBox_.isSelected());
-      display_.getDisplaySettingsObject().setIgnoreOutliersPercentage((double) rejectPercentSpinner_.getValue());
+      display_.getDisplaySettingsObject().setIgnoreOutliersPercentage(
+            (double) rejectPercentSpinner_.getValue());
       display_.getDisplaySettingsObject().setSyncChannels(syncChannelsCheckBox_.isSelected());
    }
 
@@ -153,12 +158,13 @@ public class ContrastPanel extends JPanel {
       display_.getDisplaySettingsObject().setAutoscale(autostretchCheckBox_.isSelected());
       display_.getDisplaySettingsObject().setIgnoreOutliers(rejectOutliersCheckBox_.isSelected());
       display_.getDisplaySettingsObject().setLogHist(logHistCheckBox_.isSelected());
-      display_.getDisplaySettingsObject().setIgnoreOutliersPercentage((double) rejectPercentSpinner_.getValue());
+      display_.getDisplaySettingsObject().setIgnoreOutliersPercentage(
+            (double) rejectPercentSpinner_.getValue());
       display_.getDisplaySettingsObject().setSyncChannels(syncChannelsCheckBox_.isSelected());
    }
 
    private JPanel createGUI() {
-      JPanel controlPanel = new JPanel();
+      final JPanel controlPanel = new JPanel();
       compositeCheckBox_ = new JCheckBox("Composite");
       autostretchCheckBox_ = new JCheckBox();
       rejectOutliersCheckBox_ = new JCheckBox();
@@ -230,7 +236,7 @@ public class ContrastPanel extends JPanel {
             syncChannelsCheckboxAction();
          }
       });
-      JPanel outerPanel = new JPanel(new BorderLayout());
+      final JPanel outerPanel = new JPanel(new BorderLayout());
 
       controlPanel.setLayout(new FlowLayout(FlowLayout.LEADING));
       controlPanel.add(compositeCheckBox_);
@@ -253,7 +259,6 @@ public class ContrastPanel extends JPanel {
       boolean synced = syncChannelsCheckBox_.isSelected();
       if (synced) {
          autostretchCheckBox_.setSelected(false);
-//         autostretchCheckBox_.setEnabled(false);
          if (histograms_ != null) {
             display_.getDisplaySettingsObject().setChannelContrastFromFirst();
          }

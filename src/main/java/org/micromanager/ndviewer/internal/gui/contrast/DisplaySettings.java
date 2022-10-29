@@ -14,23 +14,23 @@
 //               CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
 //               INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES.
 //
+
 package org.micromanager.ndviewer.internal.gui.contrast;
 
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import mmcorej.org.json.JSONException;
 import mmcorej.org.json.JSONObject;
 
+/**
+ * Class used to store and modify Display Settings of the viewer.
+ */
 public class DisplaySettings {
 
    private static final String PREF_KEY_COLOR = "Preferred_color_";
    private static final String PREF_KEY_BIT_DEPTH = "Channel_Bit_depth_";
 
-   public final static int NUM_DISPLAY_HIST_BINS = 256;
+   public static final int NUM_DISPLAY_HIST_BINS = 256;
 
    private static final String ALL_CHANNELS_SETTINGS_KEY = "All channel settings";
    private static final String AUTOSCALE = "Autoscale all channels";
@@ -41,7 +41,7 @@ public class DisplaySettings {
    private static final String IGNORE_PERCENTAGE = "Ignore outlier percentage";
 
    private final JSONObject json_;
-   private Preferences preferences_;
+   private final Preferences preferences_;
 
    //for reading from disk
    public DisplaySettings(JSONObject json, Preferences preferences) {
@@ -113,7 +113,6 @@ public class DisplaySettings {
          try {
             return new Color(json_.getJSONObject(channelName).getInt("Color"));
          } catch (Exception ex) {
-//            System.err.println("Color missing from display settings");
          }
          return Color.white;
       }
@@ -248,7 +247,8 @@ public class DisplaySettings {
                   if (!t.equals(ALL_CHANNELS_SETTINGS_KEY)) {
                      try {
                         json_.getJSONObject(t).put("Min", boundedContrastMin);
-                        json_.getJSONObject(t).put("Max", Math.max(boundedContrastMin, getContrastMax(t)));
+                        json_.getJSONObject(t).put("Max",
+                              Math.max(boundedContrastMin, getContrastMax(t)));
                      } catch (JSONException ex) {
                         System.err.println("Couldnt set display setting");
                      }
@@ -256,7 +256,8 @@ public class DisplaySettings {
                });
             }
             json_.getJSONObject(channelName).put("Min", boundedContrastMin);
-            json_.getJSONObject(channelName).put("Max", Math.max(boundedContrastMin, getContrastMax(channelName)));
+            json_.getJSONObject(channelName).put("Max",
+                  Math.max(boundedContrastMin, getContrastMax(channelName)));
          } catch (Exception ex) {
             System.err.println("Couldnt set display setting");
          }
@@ -272,7 +273,8 @@ public class DisplaySettings {
                   if (!t.equals(ALL_CHANNELS_SETTINGS_KEY)) {
                      try {
                         json_.getJSONObject(t).put("Max", boundedContrastMax);
-                        json_.getJSONObject(t).put("Min", Math.min(boundedContrastMax, getContrastMin(t)));
+                        json_.getJSONObject(t).put("Min",
+                              Math.min(boundedContrastMax, getContrastMin(t)));
 
                      } catch (JSONException ex) {
                         System.err.println("Couldnt set display setting");

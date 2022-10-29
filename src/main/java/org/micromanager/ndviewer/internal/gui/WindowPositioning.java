@@ -86,8 +86,7 @@ public final class WindowPositioning {
     * @param window           the window whose position should be restored and remembered
     * @param preferences      Preference (node) to store Window Bounds
     */
-   public static void setUpBoundsMemory(Window window, Preferences preferences)
-   {
+   public static void setUpBoundsMemory(Window window, Preferences preferences) {
       GeometrySaver.createAndRestoreBounds(window, preferences);
    }
 
