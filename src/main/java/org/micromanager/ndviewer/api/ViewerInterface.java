@@ -1,14 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.micromanager.ndviewer.api;
 
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.geom.Point2D;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
@@ -30,13 +24,13 @@ public interface ViewerInterface {
    
    /**
     * Call this whenever a new image arrives to optionally show it, and also so
-    * that the size of the scrollbars expands
+    * that the size of the scrollbars expands.
     *
     * @param axes map of axis labels to integer positions. channel does not need
-    * to be included in the axes because it will be automatically inferred
+    *     to be included in the axes because it will be automatically inferred
     * @param channelName Name of the channel of the image
     */
-   public void newImageArrived(HashMap<String, Integer> axes, String channelName);
+   void newImageArrived(HashMap<String, Integer> axes, String channelName);
 
    /**
     * Set display settings for channel with the given name.
@@ -45,60 +39,60 @@ public interface ViewerInterface {
     * @param c
     * @param bitDepth
     */
-   public void setChannelDisplaySettings(String chName, Color c, int bitDepth);
+   void setChannelDisplaySettings(String chName, Color c, int bitDepth);
 
    /**
-    * Set the scrollbar with a given axis label to a position
+    * Set the scrollbar with a given axis label to a position.
     *
     * @param axis
     * @param pos
     */
-   public void setAxisPosition(String axis, int pos);
+   void setAxisPosition(String axis, int pos);
 
    /**
-    * Get the position that the scrollbar with the given label is currently at
+    * Get the position that the scrollbar with the given label is currently at.
     *
     * @param axis
     * @return
     */
-   public int getAxisPosition(String axis);
+   int getAxisPosition(String axis);
 
    /**
     * Initialize all controls needed for a dataset loaded from disk
-    * where you're not calling newImageArrived each time
+    * where you're not calling newImageArrived each time.
     * 
     * @param channelNames names of all channels
     * @param axisMins map of axis names to miniumum extents (can be negative)
     * @param axisMaxs map of axis names to maximum extents
     */
-      public void initializeViewerToLoaded(List<String> channelNames,
+    void initializeViewerToLoaded(List<String> channelNames,
               JSONObject displaySettings,
               HashMap<String, Integer> axisMins, 
               HashMap<String, Integer> axisMaxs);
 
    
    /**
-    * Set the text in the windows frame
+    * Set the text in the windows frame.
     *
     * @param string
     */
-   public void setWindowTitle(String string);
+   void setWindowTitle(String string);
 
    /**
     * Optional: Pass in a function that tells how to extract elapsed ms from
-    * image metadata, for display purposes
+    * image metadata, for display purposes.
     *
     * @param fn
     */
-   public void setReadTimeMetadataFunction(Function<JSONObject, Long> fn);
+   void setReadTimeMetadataFunction(Function<JSONObject, Long> fn);
 
    /**
     * Optional: Pass in a function that tells how to extract z position in µm
-    * from image tags, for display purposes
+    * from image tags, for display purposes.
     *
     * @param fn
     */
-   public void setReadZMetadataFunction(Function<JSONObject, Double> fn);
+   void setReadZMetadataFunction(Function<JSONObject, Double> fn);
 
    /**
     * Get the JSON represenation of the internal data structure use for saving
@@ -107,116 +101,116 @@ public interface ViewerInterface {
     *
     * @return
     */
-   public JSONObject getDisplaySettingsJSON();
+   JSONObject getDisplaySettingsJSON();
 
    /**
     * Forces the viewer to close, automatically aborting any acquisition in the
-    * process
+    * process.
     */
-   public void close();
+   void close();
 
    /**
     * Redraw current image and any overlay
     */
-   public void update();
+   void update();
 
    /**
     * get the offset of the top left displayed pixel to relative to top left of
-    * the full image (in full resolution coordinates)
+    * the full image (in full resolution coordinates).
     *
     * @return
     */
-   public Point2D.Double getViewOffset();
+   Point2D.Double getViewOffset();
 
    /**
     * Pixel size of the region currently being displayed in full resolution
-    * pixels
+    * pixels.
     *
     * @return
     */
-   public Point2D.Double getFullResSourceDataSize();
+   Point2D.Double getFullResSourceDataSize();
 
    /**
-    * Return ratio beweteen size of pixels on screen and size of full resolution
-    * pixels in the iamge
+    * Return ratio between size of pixels on screen and size of full resolution
+    * pixels in the imamge.
     *
     * @return
     */
-   public double getMagnification();
+   double getMagnification();
 
    /**
-    * Change the view offset by the specified amount
+    * Change the view offset by the specified amount.
     *
     * @param dx
     * @param dy
     */
-   public void pan(int dx, int dy);
+   void pan(int dx, int dy);
 
    /**
-    * multiply zoom by given factor, centered at location
+    * multiply zoom by given factor, centered at location.
     *
     * @param factor
     * @param location location in display pixel coordinates, or null to zoom in
     * on center
     */
-   public void zoom(double factor, Point location);
+   void zoom(double factor, Point location);
 
    /**
     * set the offset of the top left displayed pixel to relative to top left of
-    * the full image (in full resolution coordinates)
+    * the full image (in full resolution coordinates).
     *
     */
-   public void setViewOffset(double newX, double newY);
+   void setViewOffset(double newX, double newY);
 
    /**
-    * Get reference to the JPanel on which image drawing takes place
+    * Get reference to the JPanel on which image drawing takes place.
     *
     * @return
     */
-   public JPanel getCanvasJPanel();
+   JPanel getCanvasJPanel();
 
    /**
     * Add a custom object to respond to different types of mouse events on the
-    * canvas
+    * canvas.
     *
     * @param m
     */
-   public void setCustomCanvasMouseListener(CanvasMouseListenerInterface m);
+   void setCustomCanvasMouseListener(CanvasMouseListenerInterface m);
 
    /**
-    * Get the size of the ge displayed on screen
+    * Get the size of the ge displayed on screen.
     *
     * @return
     */
-   public Point2D.Double getDisplayImageSize();
+   Point2D.Double getDisplayImageSize();
 
    /**
     * Set a custom overlay object to be displayed on top of the image. This
-    * method can be called an arbitrary number of times by a custom
+    * method can be called an arbitrary number of times by a custom.
     * {@link OverlayerPlugin}
     *
     * @param overlay
     */
-   public void setOverlay(Overlay overlay);
+   void setOverlay(Overlay overlay);
 
    /**
-    * Set a custom object to provide overlays
+    * Set a custom object to provide overlays.
     *
     * @param overlayer
     */
-   public void setOverlayerPlugin(OverlayerPlugin overlayer);
+   void setOverlayerPlugin(OverlayerPlugin overlayer);
 
    /**
-    * trigger redraw of the image overlay
+    * trigger redraw of the image overlay.
     */
-   public void redrawOverlay();
+   void redrawOverlay();
 
    /**
     * Add a custom JPanel containing controls to the JTabbedPane on the right
-    * side of the image
+    * side of the image.
     *
     * @param panel
     */
-   public void addControlPanel(ControlsPanelInterface panel);
+   void addControlPanel(ControlsPanelInterface panel);
 
 }
