@@ -70,7 +70,7 @@ public class NDViewer implements ViewerInterface {
    private double animationFPS_ = 7;
 
    protected DataViewCoords viewCoords_;
-   private ViewerAcquisitionInterface acq_;
+   private volatile ViewerAcquisitionInterface acq_;
    private JSONObject summaryMetadata_;
    private volatile boolean closed_ = false;
    private ConcurrentHashMap<Integer, String> channelIndices_ = new ConcurrentHashMap<Integer, String>();
@@ -689,53 +689,53 @@ public class NDViewer implements ViewerInterface {
     *
     */
    public void close() {
-      try {
-         if (acq_ != null) {
-            //Finish acquisition on different thread to not slow EDT
-            ViewerAcquisitionInterface a = acq_;
-            new Thread(new Runnable() {
-               @Override
-               public void run() {
-                  a.abort(); //it may already be aborted but call this again to be sure
-                  a.waitForCompletion();
+      new Thread(new Runnable() {
+         @Override
+         public void run() {
+            try {
+               if (acq_ != null) {
+                  //Finish acquisition on different thread to not slow EDT
+                  acq_.abort(); //it may already be aborted but call this again to be sure
+                  acq_.waitForCompletion();
                   dataSource_.close();
                   dataSource_ = null;
                }
-            }, "NDViewer Acquisition closing thread").start();
 
+            } catch (Exception e) {
+               //not ,uch to do at this point
+               e.printStackTrace();
+            } finally {
+               //Now all resources should be released, so evertthing can be shut down
+
+               //make everything else close
+               displayWindow_.onDisplayClose();
+
+               displayCalculationExecutor_.shutdownNow();
+               overlayCalculationExecutor_.shutdownNow();
+
+               imageMaker_.close();
+               imageMaker_ = null;
+
+               overlayer_.shutdown();
+               overlayer_ = null;
+
+               if (animationTimer_ != null) {
+                  animationTimer_.stop();
+               }
+               animationTimer_ = null;
+               dataSource_ = null;
+               displayWindow_ = null;
+               viewCoords_ = null;
+
+               edtRunnablePool_ = null;
+               displaySettings_ = null;
+               displayCalculationExecutor_ = null;
+               overlayCalculationExecutor_ = null;
+               acq_ = null;
+               closed_ = true;
+            }
          }
-      } catch (Exception e) {
-         //not ,uch to do at this point
-         e.printStackTrace();
-      } finally {
-         //Now all resources should be released, so evertthing can be shut down
-
-         //make everything else close
-         displayWindow_.onDisplayClose();
-
-         displayCalculationExecutor_.shutdownNow();
-         overlayCalculationExecutor_.shutdownNow();
-
-         imageMaker_.close();
-         imageMaker_ = null;
-
-         overlayer_.shutdown();
-         overlayer_ = null;
-
-         if (animationTimer_ != null) {
-            animationTimer_.stop();
-         }
-         animationTimer_ = null;
-         displayWindow_ = null;
-         viewCoords_ = null;
-
-         edtRunnablePool_ = null;
-         displaySettings_ = null;
-         displayCalculationExecutor_ = null;
-         overlayCalculationExecutor_ = null;
-         acq_ = null;
-         closed_ = true;
-      }
+      }, "NDViewer closing thread").start();
    }
 
    public JSONObject getSummaryMD() {
