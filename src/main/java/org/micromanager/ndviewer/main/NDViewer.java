@@ -722,6 +722,7 @@ public class NDViewer implements ViewerInterface {
                   acq_.abort(); //it may already be aborted but call this again to be sure
                   acq_.waitForCompletion();
                   dataSource_.close();
+                  dataSource_ = null;
                }
 
             } catch (Exception e) {
