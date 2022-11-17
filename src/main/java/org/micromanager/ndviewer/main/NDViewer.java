@@ -54,8 +54,8 @@ import org.micromanager.ndviewer.overlay.Overlay;
 
 public class NDViewer implements ViewerInterface {
 
-   protected DataSourceInterface dataSource_;
-   private DisplaySettings displaySettings_;
+   protected volatile DataSourceInterface dataSource_;
+   private volatile DisplaySettings displaySettings_;
 
    private DisplayCoalescentEDTRunnablePool edtRunnablePool_ =
          DisplayCoalescentEDTRunnablePool.create();
@@ -99,7 +99,7 @@ public class NDViewer implements ViewerInterface {
       dataSource_ = cache;
       acq_ = acq;
       preferencesKey_ = preferencesKey;
-      if (preferencesKey_ == null | preferencesKey_.equals("")) {
+      if (preferencesKey_ == null || preferencesKey_.equals("")) {
          preferencesKey_ = "Default";
       }
       displaySettings_ = new DisplaySettings(getPreferences());
@@ -328,37 +328,41 @@ public class NDViewer implements ViewerInterface {
     */
    public void newImageArrived(HashMap<String, Integer> axesPositions,
            String channelName) {
-      if (isImageXYBounded()) {
-         int[] newBounds = dataSource_.getBounds();
-         int[] oldBounds = viewCoords_.getBounds();
-         double xResize = (oldBounds[2] - oldBounds[0]) / (double) (newBounds[2] - newBounds[0]);
-         double yResize = (oldBounds[3] - oldBounds[1]) / (double) (newBounds[3] - newBounds[1]);
-         viewCoords_.setImageBounds(newBounds);
-         if (xResize < 1 || yResize < 1) {
-            zoom(1 / Math.min(xResize, yResize), null);
+      try {
+         if (isImageXYBounded()) {
+            int[] newBounds = dataSource_.getBounds();
+            int[] oldBounds = viewCoords_.getBounds();
+            double xResize = (oldBounds[2] - oldBounds[0]) / (double) (newBounds[2] - newBounds[0]);
+            double yResize = (oldBounds[3] - oldBounds[1]) / (double) (newBounds[3] - newBounds[1]);
+            viewCoords_.setImageBounds(newBounds);
+            if (xResize < 1 || yResize < 1) {
+               zoom(1 / Math.min(xResize, yResize), null);
+            }
          }
-      }
-      if (viewCoords_.getActiveChannel() == null) {
-         viewCoords_.setActiveChannel(channelName);
-      }
+         if (viewCoords_.getActiveChannel() == null) {
+            viewCoords_.setActiveChannel(channelName);
+         }
 
-      boolean newChannel = false;
-      if (!channelIndices_.containsValue(channelName)) {
-         channelIndices_.put(axesPositions.get("channel"), channelName);
-         newChannel = true;
-      }
+         boolean newChannel = false;
+         if (!channelIndices_.containsValue(channelName)) {
+            channelIndices_.put(axesPositions.get("channel"), channelName);
+            newChannel = true;
+         }
 
-      if (newChannel) {
-         //Add contrast controls and display settings
-         displaySettings_.addChannel(channelName);
-         displayWindow_.addContrastControls(channelName);
-      }
+         if (newChannel) {
+            //Add contrast controls and display settings
+            displaySettings_.addChannel(channelName);
+            displayWindow_.addContrastControls(channelName);
+         }
 
-      //expand the scrollbars with new images
-      edtRunnablePool_.invokeLaterWithCoalescence(
-              new NDViewer.ExpandDisplayRangeCoalescentRunnable(axesPositions,
-                      channelName));
-      //move scrollbars to new position
+         //expand the scrollbars with new images
+         edtRunnablePool_.invokeLaterWithCoalescence(
+                 new NDViewer.ExpandDisplayRangeCoalescentRunnable(axesPositions,
+                         channelName));
+         //move scrollbars to new position
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
    }
 
    public void setAxisPosition(String axis, int position) {
