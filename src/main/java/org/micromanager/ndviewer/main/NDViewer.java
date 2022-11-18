@@ -89,7 +89,7 @@ public class NDViewer implements ViewerInterface {
 
    public NDViewer(DataSourceInterface cache, ViewerAcquisitionInterface acq, JSONObject summaryMD,
                    double pixelSize, boolean rgb) {
-      new NDViewer(cache, acq, summaryMD, pixelSize, rgb, null);
+      this(cache, acq, summaryMD, pixelSize, rgb, null);
    }
 
    public NDViewer(DataSourceInterface cache, ViewerAcquisitionInterface acq, JSONObject summaryMD,
