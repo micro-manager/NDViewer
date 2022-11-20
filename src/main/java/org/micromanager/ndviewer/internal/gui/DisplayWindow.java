@@ -17,6 +17,7 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 import mmcorej.org.json.JSONObject;
 import org.micromanager.ndviewer.api.CanvasMouseListenerInterface;
 import org.micromanager.ndviewer.api.ControlsPanelInterface;
@@ -45,6 +46,8 @@ public class DisplayWindow implements WindowListener {
 
    public DisplayWindow(NDViewer display, boolean nullAcq) {
       window_ = new JFrame();
+      // Closing controlled by dialog
+      window_.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
       display_ = display;
       window_.setSize(1500, 800);
       WindowPositioning.setUpBoundsMemory(window_, display.getPreferences());
