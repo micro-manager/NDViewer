@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -75,8 +76,11 @@ public class NDViewer implements ViewerInterface {
    private volatile ViewerAcquisitionInterface acq_;
    private JSONObject summaryMetadata_;
    private volatile boolean closed_ = false;
-   private ConcurrentHashMap<Integer, String> channelIndices_ =
-         new ConcurrentHashMap<Integer, String>();
+   // Axes may use integer or string positions. Keep track of which
+   // uses which ones do this here, and which string values map to which
+   // Integer positions (because these are needed for display)
+   private ConcurrentHashMap<String, LinkedList<String>> stringAxes_ =
+           new ConcurrentHashMap<String, LinkedList<String>>();
 
    private Function<JSONObject, Long> readTimeFunction_ = null;
    private Function<JSONObject, Double> readZFunction_ = null;
@@ -104,13 +108,25 @@ public class NDViewer implements ViewerInterface {
       }
       displaySettings_ = new DisplaySettings(getPreferences());
       int[] bounds = cache.getBounds();
-      viewCoords_ = new DataViewCoords(cache, null, 0, 0,
+      viewCoords_ = new DataViewCoords(cache, 0, 0,
               bounds == null ? null : (double) (bounds[2] - bounds[0]),
               bounds == null ? null : (double) (bounds[3] - bounds[1]),
               dataSource_.getBounds(), rgb);
       displayWindow_ = new DisplayWindow(this, acq == null);
       overlayer_ = new BaseOverlayer(this);
       imageMaker_ = new ImageMaker(this, cache);
+   }
+
+   /**
+    * Convert the position of a string axis to an integer position
+    * @param axisPosition
+    */
+   public int getIntegerPositionFromStringPosition(String axisName, String axisPosition) {
+      return stringAxes_.get(axisName).indexOf(axisPosition);
+   }
+
+   public String getStringPositionFromIntegerPosition(String axisName, int axisPosition) {
+      return stringAxes_.get(axisName).get(axisPosition);
    }
 
    public void setReadTimeMetadataFunction(Function<JSONObject, Long> fn) {
@@ -279,7 +295,7 @@ public class NDViewer implements ViewerInterface {
    }
 
    public void initializeViewerToLoaded(List<String> channelNames, JSONObject dispSettings,
-           HashMap<String, Integer> axisMins, HashMap<String, Integer> axisMaxs) {
+           HashMap<String, Object> axisMins, HashMap<String, Object> axisMaxs) {
 
       displaySettings_ = new DisplaySettings(dispSettings, getPreferences());
       for (int c = 0; c < channelNames.size(); c++) {
@@ -299,7 +315,7 @@ public class NDViewer implements ViewerInterface {
             viewCoords_.setActiveChannel(channelName);
 
             //only one channel can be active so inacivate others
-            for (String channel : channelIndices_.values()) {
+            for (String channel : stringAxes_.get("channel")) {
                displaySettings_.setActive(channel, channel.equals(viewCoords_.getActiveChannel()));
             }
          } else {
@@ -324,10 +340,8 @@ public class NDViewer implements ViewerInterface {
     * Signal to viewer that a new image is available.
     *
     * @param axesPositions Hashmap of axis labels to positions
-    * @param channelName
     */
-   public void newImageArrived(HashMap<String, Integer> axesPositions,
-           String channelName) {
+   public void newImageArrived(HashMap<String, Object> axesPositions) {
       try {
          if (isImageXYBounded()) {
             int[] newBounds = dataSource_.getBounds();
@@ -339,12 +353,13 @@ public class NDViewer implements ViewerInterface {
                zoom(1 / Math.min(xResize, yResize), null);
             }
          }
+         String channelName = (String) axesPositions.get("channel");
          if (viewCoords_.getActiveChannel() == null) {
             viewCoords_.setActiveChannel(channelName);
          }
 
          boolean newChannel = false;
-         if (!channelIndices_.containsValue(channelName)) {
+         if (!axesPositions.containsValue(channelName)) {
             channelIndices_.put(axesPositions.get("channel"), channelName);
             newChannel = true;
          }
@@ -366,18 +381,15 @@ public class NDViewer implements ViewerInterface {
    }
 
    public void setAxisPosition(String axis, int position) {
-      HashMap<String, Integer> axes = new HashMap<>();
+      HashMap<String, Object> axes = new HashMap<>();
       axes.put(axis, position);
-      if (axis.equals("channel")) {
-         viewCoords_.setActiveChannel(channelIndices_.get(position));
-      }
       setImageEvent(axes, true);
    }
 
    /**
     * Called when scrollbars move
     */
-   public void setImageEvent(HashMap<String, Integer> axes, boolean fromHuman) {
+   public void setImageEvent(HashMap<String, Object> axes, boolean fromHuman) {
       if (axes != null && displayWindow_ != null) {
          for (String axis : axes.keySet()) {
             if (!displayWindow_.isScrollerAxisLocked(axis) || fromHuman) {
@@ -387,12 +399,12 @@ public class NDViewer implements ViewerInterface {
       }
       //Set channel
       if (axes.containsKey("channel")) {
-         viewCoords_.setActiveChannel(channelIndices_.get(axes.get("channel")));
+         viewCoords_.setActiveChannel((String) axes.get("channel"));
       }
       //Update other channels if in single channel view mode
       if (!displaySettings_.isCompositeMode()) {
          //set all channels inactive except current one
-         for (String c : channelIndices_.values()) {
+         for (String c : stringAxes_.get("channel")) {
             displaySettings_.setActive(c, c.equals(viewCoords_.getActiveChannel()));
             displayWindow_.displaySettingsChanged();
          }
@@ -523,12 +535,12 @@ public class NDViewer implements ViewerInterface {
       displaySettings_.setCompositeMode(selected);
       //select all channels if composite mode is being turned on
       if (selected) {
-         for (String channel : channelIndices_.values()) {
+         for (String channel : stringAxes_.get("channel")) {
             displaySettings_.setActive(channel, true);
             displayWindow_.displaySettingsChanged();
          }
       } else {
-         for (String channel : channelIndices_.values()) {
+         for (String channel : stringAxes_.get("channel")) {
             displaySettings_.setActive(channel, viewCoords_.getActiveChannel().equals(channel));
             displayWindow_.displaySettingsChanged();
          }
@@ -545,7 +557,7 @@ public class NDViewer implements ViewerInterface {
    }
 
    public Iterable<String> getChannels() {
-      return channelIndices_.values();
+      return stringAxes_.get("channels");
    }
 
    public JPanel getCanvasJPanel() {
@@ -553,7 +565,7 @@ public class NDViewer implements ViewerInterface {
    }
 
    @Override
-   public int getAxisPosition(String axis) {
+   public Object getAxisPosition(String axis) {
       return viewCoords_.getAxisPosition(axis);
    }
 
@@ -570,10 +582,6 @@ public class NDViewer implements ViewerInterface {
    @Override
    public void setViewOffset(double newX, double newY) {
       viewCoords_.setViewOffset(newX, newY);
-   }
-
-   public String getChannelName(int position) {
-      return channelIndices_.get(position);
    }
 
    public void showTimeLabel(boolean selected) {
@@ -638,13 +646,8 @@ public class NDViewer implements ViewerInterface {
       displayWindow_.addControlPanel(panel);
    }
 
-   public Integer getChannelIndex(String channel) {
-      for (Integer i : channelIndices_.keySet()) {
-         if (channelIndices_.get(i).equals(channel)) {
-            return i;
-         }
-      }
-      throw new RuntimeException("channel not found");
+   public boolean isIntegerAxis(String axis) {
+      return !stringAxes_.contains(axis);
    }
 
    /**
@@ -654,10 +657,10 @@ public class NDViewer implements ViewerInterface {
    private class ExpandDisplayRangeCoalescentRunnable
            implements CoalescentRunnable {
 
-      private final List<HashMap<String, Integer>> newIamgeEvents = new ArrayList<>();
+      private final List<HashMap<String, Object>> newIamgeEvents = new ArrayList<>();
       private final List<String> activeChannels = new ArrayList<String>();
 
-      ExpandDisplayRangeCoalescentRunnable(HashMap<String, Integer> axisPosisitons,
+      ExpandDisplayRangeCoalescentRunnable(HashMap<String, Object> axisPosisitons,
                                            String channelIndex) {
          newIamgeEvents.add(axisPosisitons);
          activeChannels.add(channelIndex);

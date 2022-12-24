@@ -32,7 +32,7 @@ public interface OverlayerPlugin {
     * @throws InterruptedException 
     */
    public void drawOverlay(Overlay defaultOverlay, Point2D.Double displayImageSize, 
-           double downsampleFactor, Graphics g, HashMap<String, Integer> axes, 
+           double downsampleFactor, Graphics g, HashMap<String, Object> axes,
            double magnification, Point2D.Double viewOffset) throws InterruptedException;
    
    

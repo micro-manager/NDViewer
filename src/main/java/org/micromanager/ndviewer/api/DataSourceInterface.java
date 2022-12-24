@@ -37,7 +37,7 @@ public interface DataSourceInterface {
     * @param imageHeight pixel height of the image at the requested resolution
     * @return
     */
-   public TaggedImage getImageForDisplay(HashMap<String, Integer> axes,
+   public TaggedImage getImageForDisplay(HashMap<String, Object> axes,
            int resolutionindex, double xOffset, double yOffset,
            int imageWidth, int imageHeight);
 
@@ -45,7 +45,7 @@ public interface DataSourceInterface {
     * Get the axes of all available images in this dataset
     * @return
     */
-   public Set<HashMap<String, Integer>> getStoredAxes();
+   public Set<HashMap<String, Object>> getStoredAxes();
 
    /**
     * Index of the log 2 biggest downsample factor in the pyramid 0 is full

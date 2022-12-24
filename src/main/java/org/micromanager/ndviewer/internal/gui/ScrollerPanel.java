@@ -34,7 +34,7 @@ class ScrollerPanel extends JPanel {
    public ArrayList<AxisScroller> scrollers_;
    // A mapping of axis identifiers to their positions as of the last time
    // checkForImagePositionChanged() was called.
-   private HashMap<String, Integer> lastImagePosition_ = null;
+   private HashMap<String, Object> lastImagePosition_ = null;
    // This will get set to false in prepareForClose, in turn barring any more
    // timers from getting created.
    private boolean canMakeTimers_ = true;
@@ -46,12 +46,6 @@ class ScrollerPanel extends JPanel {
    private double framesPerSec_;
    private NDViewer display_;
 
-   /**
-    * @param axes List of Strings labeling the axes that the caller wants to
-    * create AxisScrollers for.
-    * @param maximums List of Integers indicating the number of images along
-    * that axis.
-    */
    public ScrollerPanel(NDViewer display, double framesPerSec) {
       // Minimize whitespace around our components.
       super(new net.miginfocom.swing.MigLayout("insets 0, fillx"));
@@ -99,7 +93,7 @@ class ScrollerPanel extends JPanel {
    private void checkForImagePositionChanged() {
       boolean shouldPostEvent = false;
       if (lastImagePosition_ == null) {
-         lastImagePosition_ = new HashMap<String, Integer>();
+         lastImagePosition_ = new HashMap<String, Object>();
       }
       String channel = null;
       for (AxisScroller scroller : scrollers_) {
@@ -151,10 +145,11 @@ class ScrollerPanel extends JPanel {
       }
    }
 
-   void expandDisplayedRangeToInclude(List<HashMap<String, Integer>> newIamgeEvents,
-           List<String> channels) {
+   void expandDisplayedRangeToInclude(List<HashMap<String, Object>> newIamgeEvents,
+                                      List<String> channels)
+   {
       for (int i = 0; i < newIamgeEvents.size(); i++) {
-         HashMap<String, Integer> axes = newIamgeEvents.get(i);
+         HashMap<String, Object> axes = newIamgeEvents.get(i);
 //         convert channel name to coords
 //         int cIndex = display_.getChannelIndex(channels.get(i));
 //         axes.put("c", cIndex);
@@ -177,7 +172,14 @@ class ScrollerPanel extends JPanel {
             if (!axes.containsKey(scroller.getAxis())) {
                continue; //these events have no information pertinent to this scroller
             }
-            int imagePosition = axes.get(scroller.getAxis());
+            int imagePosition;
+            if (display_.isIntegerAxis(scroller.getAxis())) {
+               imagePosition = (Integer) axes.get(scroller.getAxis());
+            } else {
+               imagePosition = display_.getIntegerPositionFromStringPosition(
+                       scroller.getAxis(), (String) axes.get(scroller.getAxis()));
+            }
+
             if (!scroller.isInitialized()) {
                scroller.initialize(imagePosition);
             }

@@ -21,20 +21,17 @@ public class DataViewCoords {
    private double displayImageWidth_, displayImageHeight_; //resolution of the image to be displayed 
    private double sourceDataFullResWidth_, sourceDataFullResHeight_; //resolution in pixels of the display image at full res
    private double xView_, yView_; //top left pixel in full res coordinates
-   private HashMap<String, Integer> axes_ = new HashMap<String, Integer>();
-   final private HashSet<String> channelNames_ = new HashSet<String>();
+   private HashMap<String, Object> axes_ = new HashMap<String, Object>();
    private int resolutionIndex_;
    private DataSourceInterface cache_;
-   private String currentChannel_;
    private boolean rgb_;
    private boolean sourceDataWidthInitialized_ = false;
 
    //Parameters that track what part of the dataset is being viewed
    public int xMax_, yMax_, xMin_, yMin_;
 
-   public DataViewCoords(DataSourceInterface cache, String currentChannel, double xView, double yView,
+   public DataViewCoords(DataSourceInterface cache, double xView, double yView,
            Double initialWidth, Double initialHeight, int[] imageBounds, boolean rgb) {
-      currentChannel_ = currentChannel;
       cache_ = cache;
       xView_ = 0;
       yView_ = 0;
@@ -145,11 +142,11 @@ public class DataViewCoords {
       computeResIndex();
    }
 
-   public void setAxisPosition(String axis, Integer position) {
+   public void setAxisPosition(String axis, Object position) {
       axes_.put(axis, position);
    }
 
-   public int getAxisPosition(String axis) {
+   public Object getAxisPosition(String axis) {
       if (!axes_.containsKey(axis)) {
          return 0;
       }
@@ -157,17 +154,13 @@ public class DataViewCoords {
    }
 
    public DataViewCoords copy() {
-      DataViewCoords view = new DataViewCoords(cache_, currentChannel_, xView_, yView_,
+      DataViewCoords view = new DataViewCoords(cache_, xView_, yView_,
               sourceDataFullResWidth_, sourceDataFullResHeight_, new int[]{xMin_, yMin_, xMax_, yMax_}, rgb_);
-      for (String channel : channelNames_) {
-         view.channelNames_.add(channel);
-      }
       for (String axisName : axes_.keySet()) {
          view.axes_.put(axisName, axes_.get(axisName));
       }
       view.displayImageHeight_ = displayImageHeight_;
       view.displayImageWidth_ = displayImageWidth_;
-      view.currentChannel_ = currentChannel_;
       view.xView_ = xView_;
       view.yView_ = yView_;
       view.rgb_ = rgb_;
@@ -178,15 +171,15 @@ public class DataViewCoords {
    }
 
    public String getActiveChannel() {
-      return currentChannel_;
+      return (String) axes_.get("channel");
    }
 
-   public HashMap<String, Integer> getAxesPositions() {
+   public HashMap<String, Object> getAxesPositions() {
       return axes_;
    }
 
    public void setActiveChannel(String channelName) {
-      currentChannel_ = channelName;
+      axes_.put("channel", channelName);
    }
 
    public int[] getBounds() {

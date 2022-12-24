@@ -75,8 +75,8 @@ class SubImageControls extends JPanel {
       scrollerPanel_.superlockAllScrollers();
    }
 
-   void expandDisplayedRangeToInclude(List<HashMap<String, Integer>> newIamgeEvents,
-           List<String> channels) {
+   void expandDisplayedRangeToInclude(List<HashMap<String, Object>> newIamgeEvents,
+                                      List<String> channels) {
       scrollerPanel_.expandDisplayedRangeToInclude(newIamgeEvents, channels);
    }
 
@@ -107,7 +107,12 @@ class SubImageControls extends JPanel {
 
    void updateScrollerPositions(DataViewCoords view) {
       for (AxisScroller a : scrollerPanel_.scrollers_) {
-         a.setPosition(view.getAxisPosition(a.getAxis()));
+         Object axisPosition = view.getAxisPosition(a.getAxis());
+         if (axisPosition instanceof Integer) {
+            a.setPosition((Integer) axisPosition);
+         } else {
+            a.setPosition(display_.getIntegerPositionFromStringPosition(a.getAxis(), (String) axisPosition));
+         }
       }
    }
 

@@ -59,13 +59,13 @@ public class ImageMaker {
     * through all axes currently stored for this channel, and delete any axes from the request that arent present
     * @return
     */
-   private TaggedImage getDisplayImage(HashMap<String, Integer> axes,
+   private TaggedImage getDisplayImage(HashMap<String, Object> axes,
                                          int resolutionindex, double xOffset, double yOffset,
                                          int imageWidth, int imageHeight) {
 
-      Set<HashMap<String, Integer>> allAxes = imageCache_.getStoredAxes();
+      Set<HashMap<String, Object>> allAxes = imageCache_.getStoredAxes();
       HashSet<String> axesInChannel = new HashSet<String>();
-      for (HashMap<String, Integer> storedAxes : allAxes) {
+      for (HashMap<String, Object> storedAxes : allAxes) {
          if (storedAxes.containsKey("channel") && axes.containsKey("channel") &&
                  storedAxes.get("channel").equals(axes.get("channel"))) {
                axesInChannel.addAll(storedAxes.keySet());
@@ -116,8 +116,7 @@ public class ImageMaker {
          long viewOffsetAtResY = (long) (viewCoords.getViewOffset().y / viewCoords.getDownsampleFactor());
 
          //replace channel axis position with the specific channel 
-         HashMap<String, Integer> axes = new HashMap<String, Integer>(viewCoords.getAxesPositions());
-         axes.put("channel", display_.getChannelIndex(channel));
+         HashMap<String, Object> axes = new HashMap<String, Object>(viewCoords.getAxesPositions());
          TaggedImage imageForDisplay = getDisplayImage(axes, viewCoords.getResolutionIndex(),
                  viewOffsetAtResX, viewOffsetAtResY, imagePixelWidth, imagePixelHeight);
 

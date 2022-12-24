@@ -182,8 +182,8 @@ public class DisplayWindow implements WindowListener {
       sideControls_.setImageMetadata(imageMD);
    }
 
-   public void expandDisplayedRangeToInclude(List<HashMap<String, Integer>> newIamgeEvents,
-           List<String> channels) {
+   public void expandDisplayedRangeToInclude(List<HashMap<String, Object>> newIamgeEvents,
+                                             List<String> channels) {
       subImageControls_.expandDisplayedRangeToInclude(newIamgeEvents, channels);
    }
 
