@@ -39,6 +39,7 @@ public class DisplayWindow implements WindowListener {
    private JButton collapseExpandButton_;
    private JPanel leftPanel_;
    private JPanel rightPanel_;
+   private boolean contrastInitilized_ = false;
 
    private NDViewer display_;
    JFrame window_;
@@ -149,8 +150,13 @@ public class DisplayWindow implements WindowListener {
       window_.revalidate();
    }
 
+   public boolean contrastControlsInitialized() {
+      return contrastInitilized_;
+   }
+
    public void addContrastControls(String channelName) {
       sideControls_.addContrastControls(channelName);
+      contrastInitilized_ = true;
    }
 
    public void collapseOrExpandSideControls(boolean expand) {
@@ -182,8 +188,8 @@ public class DisplayWindow implements WindowListener {
       sideControls_.setImageMetadata(imageMD);
    }
 
-   public void expandDisplayedRangeToInclude(List<HashMap<String, Integer>> newIamgeEvents,
-           List<String> channels) {
+   public void expandDisplayedRangeToInclude(List<HashMap<String, Object>> newIamgeEvents,
+                                             List<String> channels) {
       subImageControls_.expandDisplayedRangeToInclude(newIamgeEvents, channels);
    }
 

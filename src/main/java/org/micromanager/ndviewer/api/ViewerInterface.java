@@ -26,11 +26,9 @@ public interface ViewerInterface {
     * Call this whenever a new image arrives to optionally show it, and also so
     * that the size of the scrollbars expands.
     *
-    * @param axes map of axis labels to integer positions. channel does not need
-    *     to be included in the axes because it will be automatically inferred
-    * @param channelName Name of the channel of the image
+    * @param axes map of axis labels to integer positions or String labels.
     */
-   void newImageArrived(HashMap<String, Integer> axes, String channelName);
+   void newImageArrived(HashMap<String, Object> axes);
 
    /**
     * Set display settings for channel with the given name.
@@ -55,7 +53,7 @@ public interface ViewerInterface {
     * @param axis
     * @return
     */
-   int getAxisPosition(String axis);
+   Object getAxisPosition(String axis);
 
    /**
     * Initialize all controls needed for a dataset loaded from disk
@@ -67,8 +65,8 @@ public interface ViewerInterface {
     */
     void initializeViewerToLoaded(List<String> channelNames,
               JSONObject displaySettings,
-              HashMap<String, Integer> axisMins, 
-              HashMap<String, Integer> axisMaxs);
+              HashMap<String, Object> axisMins,
+              HashMap<String, Object> axisMaxs);
 
    
    /**
