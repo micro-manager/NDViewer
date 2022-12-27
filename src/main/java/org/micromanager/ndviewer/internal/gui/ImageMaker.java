@@ -9,9 +9,6 @@ import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.image.MemoryImageSource;
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 import mmcorej.TaggedImage;
 import mmcorej.org.json.JSONObject;
@@ -53,24 +50,25 @@ public class ImageMaker {
       return latestTags_;
    }
 
-   /**
-    * The axes requested correspond to every scrollbar in the viewer. But all axes dont have to apply
-    * to every channel (for example, a maximum intensity projection doesnt have z axis). So search
-    * through all axes currently stored for this channel, and delete any axes from the request that arent present
-    * @return
-    */
    private TaggedImage getDisplayImage(HashMap<String, Object> axes,
                                          int resolutionindex, double xOffset, double yOffset,
                                          int imageWidth, int imageHeight) {
 
-      Set<HashMap<String, Object>> allAxes = imageCache_.getStoredAxes();
+      //The axes requested correspond to every scrollbar in the viewer. But all axes dont have to apply
+      //  to every channel (for example, a maximum intensity projection doesnt have z axis). So search
+      //   through all axes currently stored for this channel, and delete any axes from the request that arent present
+      Set<HashMap<String, Object>> allImageKeys = imageCache_.getImageKeys();
       HashSet<String> axesInChannel = new HashSet<String>();
-      for (HashMap<String, Object> storedAxes : allAxes) {
-         if (storedAxes.containsKey("channel") && axes.containsKey("channel") &&
-                 storedAxes.get("channel").equals(axes.get("channel"))) {
-               axesInChannel.addAll(storedAxes.keySet());
-            }
+      // If some axes aren't provided,
+      for (HashMap<String, Object> key : allImageKeys) {
+         if ((key.containsKey("channel") && axes.containsKey("channel") &&
+                 key.get("channel").equals(axes.get("channel")) )) {
+               axesInChannel.addAll(key.keySet());
+            } else if (!axes.containsKey("channel")) {
+               axesInChannel.addAll(axes.keySet());
+         }
       }
+
       String[] requestedAxes = axes.keySet().toArray(new String[0]);
       for (String axis : requestedAxes) {
          if (!axis.equals("channel") && !axesInChannel.contains(axis)) {
@@ -89,42 +87,54 @@ public class ImageMaker {
     */
    public Image makeOrGetImage(DataViewCoords viewCoords) {
       boolean remakeDisplayImage = false; //remake the actual Iamge object if size has changed, otherwise just set pixels
-      if (viewCoords.getSourceImageSizeAtResLevel().x != imageWidth_
-              || viewCoords.getSourceImageSizeAtResLevel().y != imageHeight_) {
+      if (((int) viewCoords.getSourceImageSizeAtResLevel().x) != imageWidth_
+              || ((int)viewCoords.getSourceImageSizeAtResLevel().y) != imageHeight_) {
          imageWidth_ = (int) viewCoords.getSourceImageSizeAtResLevel().x;
          imageHeight_ = (int) viewCoords.getSourceImageSizeAtResLevel().y;
          rgbPixels_ = new int[imageWidth_ * imageHeight_];
          remakeDisplayImage = true;
       }
 
+//      List<String> channels = new LinkedList<String>();
+//      channels.addAll(display_.getChannels());
+//      // Needed so that a blank image is shown before what channels ar
+//      if (channels.size() == 0) {
+//         channels.add(null);
+//      }
       //update pixels
-      for (String channel : display_.getChannels()) {
-         //create channel processors as needed
-         synchronized (this) {
-            if (!channelProcessors_.containsKey(channel)) {
-               channelProcessors_.put(channel, viewCoords.isRGB() ? new NDVImageProcessorRGB(imageWidth_, imageHeight_, channel) :
-                       new NDVImageProcessor(imageWidth_, imageHeight_, channel) );
+      if (display_.getChannels() != null) {
+         for (String channel : display_.getChannels()) {
+            //create channel processors as needed
+            synchronized (this) {
+               if (!channelProcessors_.containsKey(channel)) {
+                  channelProcessors_.put(channel, viewCoords.isRGB() ? new NDVImageProcessorRGB(imageWidth_, imageHeight_, channel) :
+                          new NDVImageProcessor(imageWidth_, imageHeight_, channel));
+               }
             }
+            if (!display_.getDisplaySettingsObject().isActive(channel)) {
+               continue;
+            }
+
+            int imagePixelWidth = (int) (viewCoords.getFullResSourceDataSize().x / viewCoords.getDownsampleFactor());
+            int imagePixelHeight = (int) (viewCoords.getFullResSourceDataSize().y / viewCoords.getDownsampleFactor());
+            long viewOffsetAtResX = (long) (viewCoords.getViewOffset().x / viewCoords.getDownsampleFactor());
+            long viewOffsetAtResY = (long) (viewCoords.getViewOffset().y / viewCoords.getDownsampleFactor());
+
+            HashMap<String, Object> axes = new HashMap<String, Object>(viewCoords.getAxesPositions());
+            //replace channel axis position with the specific channel, because channels are overlayed despite only
+            // one being selected at a time. Unless channel is "", in which case there actually are no channels
+            if (!channel.equals("")) {
+               axes.put("channel", channel);
+            }
+            TaggedImage imageForDisplay = getDisplayImage(axes, viewCoords.getResolutionIndex(),
+                    viewOffsetAtResX, viewOffsetAtResY, imagePixelWidth, imagePixelHeight);
+
+            if (viewCoords.getActiveChannel().equals(channel)) {
+               latestTags_ = imageForDisplay.tags;
+            }
+            channelProcessors_.get(channel).changePixels(imageForDisplay.pix, imageWidth_, imageHeight_);
+
          }
-         if (!display_.getDisplaySettingsObject().isActive(channel)) {
-            continue;
-         }
-
-         int imagePixelWidth = (int) (viewCoords.getFullResSourceDataSize().x / viewCoords.getDownsampleFactor());
-         int imagePixelHeight = (int) (viewCoords.getFullResSourceDataSize().y / viewCoords.getDownsampleFactor());
-         long viewOffsetAtResX = (long) (viewCoords.getViewOffset().x / viewCoords.getDownsampleFactor());
-         long viewOffsetAtResY = (long) (viewCoords.getViewOffset().y / viewCoords.getDownsampleFactor());
-
-         //replace channel axis position with the specific channel 
-         HashMap<String, Object> axes = new HashMap<String, Object>(viewCoords.getAxesPositions());
-         TaggedImage imageForDisplay = getDisplayImage(axes, viewCoords.getResolutionIndex(),
-                 viewOffsetAtResX, viewOffsetAtResY, imagePixelWidth, imagePixelHeight);
-
-         if (viewCoords.getActiveChannel().equals(channel)) {
-            latestTags_ = imageForDisplay.tags;
-         }
-         channelProcessors_.get(channel).changePixels(imageForDisplay.pix, imageWidth_, imageHeight_);
-
       }
 
       try {
@@ -300,6 +310,8 @@ public class ImageMaker {
                rawHistogram[i] += gProcessor_.rawHistogram[i];
                rawHistogram[i] += bProcessor_.rawHistogram[i];
             }
+            processHistogram(rawHistogram);
+
             if (display_.getDisplaySettingsObject().getAutoscale()) {
                if (display_.getDisplaySettingsObject().ignoreFractionOn()) {
                   contrastMax_ = maxAfterRejectingOutliers_;
@@ -328,6 +340,43 @@ public class ImageMaker {
          rProcessor_.splitLUTRGB();
          gProcessor_.splitLUTRGB();
          bProcessor_.splitLUTRGB();
+      }
+
+      private void processHistogram(int[] rawHistogram) {
+         //Compute stats
+         int totalPixels = 0;
+         for (int i = 0; i < rawHistogram.length; i++) {
+            totalPixels += rawHistogram[i];
+         }
+
+         pixelMin_ = -1;
+         pixelMax_ = 0;
+         int binSize = rawHistogram.length / 256;
+         int numBins = (int) Math.min(rawHistogram.length / binSize, DisplaySettings.NUM_DISPLAY_HIST_BINS);
+         for (int i = 0; i < numBins; i++) {
+            for (int j = 0; j < binSize; j++) {
+               int rawHistIndex = (int) (i * binSize + j);
+               int rawHistVal = rawHistogram[rawHistIndex];
+               if (rawHistVal > 0) {
+                  pixelMax_ = rawHistIndex;
+                  if (pixelMin_ == -1) {
+                     pixelMin_ = rawHistIndex;
+                  }
+               }
+            }
+         }
+         maxAfterRejectingOutliers_ = (int) totalPixels;
+         // specified percent of pixels are ignored in the automatic contrast setting
+         double percentToIgnore = 0.0;
+         try  {
+            percentToIgnore = display_.getDisplaySettingsObject().percentToIgnore();
+         } catch (Exception e) {
+            System.err.println(e);
+         }
+         HistogramUtils hu = new HistogramUtils(rawHistogram, totalPixels, 0.01 * percentToIgnore);
+         minAfterRejectingOutliers_ = hu.getMinAfterRejectingOutliers();
+         maxAfterRejectingOutliers_ = hu.getMaxAfterRejectingOutliers();
+
       }
    }
 
@@ -453,6 +502,9 @@ public class ImageMaker {
          int size = width * height;
          if (eightBitImage == null) {
             eightBitImage = new byte[size];
+         }
+         if (pixels == null) {
+            return;
          }
          int value;
          double scale = 256.0 / (contrastMax_ - contrastMin_ + 1);

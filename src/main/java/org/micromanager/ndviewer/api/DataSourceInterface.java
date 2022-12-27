@@ -45,7 +45,7 @@ public interface DataSourceInterface {
     * Get the axes of all available images in this dataset
     * @return
     */
-   public Set<HashMap<String, Object>> getStoredAxes();
+   public Set<HashMap<String, Object>> getImageKeys();
 
    /**
     * Index of the log 2 biggest downsample factor in the pyramid 0 is full

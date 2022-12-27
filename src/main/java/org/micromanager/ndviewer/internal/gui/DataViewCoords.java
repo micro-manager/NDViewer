@@ -171,7 +171,7 @@ public class DataViewCoords {
    }
 
    public String getActiveChannel() {
-      return (String) axes_.get("channel");
+      return axes_.get("channel") != null ? (String) axes_.get("channel") : "" ;
    }
 
    public HashMap<String, Object> getAxesPositions() {

@@ -95,15 +95,15 @@ class ScrollerPanel extends JPanel {
       if (lastImagePosition_ == null) {
          lastImagePosition_ = new HashMap<String, Object>();
       }
-      String channel = null;
       for (AxisScroller scroller : scrollers_) {
-//         if (scroller.getAxis().equals("c")) {
-//            channel = display_.getChannelName(scroller.getPosition());
-//         }
          String axis = scroller.getAxis();
-         Integer position = scroller.getPosition();
+         Object position = scroller.getPosition();
+         // Convert string positions to integer positions
+         if (!display_.isIntegerAxis(axis)) {
+            position = display_.getStringPositionFromIntegerPosition(axis, (Integer) position);
+         }
          if (!lastImagePosition_.containsKey(axis)
-                 || lastImagePosition_.get(axis) != position) {
+                 || !lastImagePosition_.get(axis).equals(position)) {
             // Position along this axis has changed; we need to refresh.
             shouldPostEvent = true;
          }
