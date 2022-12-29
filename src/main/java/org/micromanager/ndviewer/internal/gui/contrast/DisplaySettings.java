@@ -81,11 +81,10 @@ public class DisplaySettings {
       }
    }
 
-   public void addChannel(String cName) {
+   public void addChannel(String cName, int bitDepth) {
       try {
          //load from preferences
          int colorInt = preferences_.getInt(PREF_KEY_COLOR + cName, -1);
-         int bitDepth = preferences_.getInt(PREF_KEY_BIT_DEPTH + cName, 16);
 
          JSONObject channelDisp = new JSONObject();
          channelDisp.put("Color",
@@ -122,7 +121,7 @@ public class DisplaySettings {
       synchronized (this) {
          try {
             if (!json_.has(channelName)) {
-               addChannel(channelName);
+               addChannel(channelName, bitDepth);
             }
             json_.getJSONObject(channelName).put("BitDepth", bitDepth);
             preferences_.putInt(PREF_KEY_BIT_DEPTH + channelName, bitDepth);
@@ -136,7 +135,7 @@ public class DisplaySettings {
       synchronized (this) {
          try {
             if (!json_.has(channelName)) {
-               addChannel(channelName);
+               addChannel(channelName, 16);
             }
             return json_.getJSONObject(channelName).optInt("BitDepth", 16);
          } catch (Exception ex) {
@@ -207,7 +206,7 @@ public class DisplaySettings {
       synchronized (this) {
          try {
             if (!json_.has(channelName)) {
-               addChannel(channelName);
+               addChannel(channelName, 16);
             }
             json_.getJSONObject(channelName).put("Color", color.getRGB());
             preferences_.putInt(PREF_KEY_COLOR + channelName, color.getRGB());

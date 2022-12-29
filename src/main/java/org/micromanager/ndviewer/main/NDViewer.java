@@ -138,11 +138,6 @@ public class NDViewer implements ViewerInterface {
       readZFunction_ = fn;
    }
 
-   public void setChannelDisplaySettings(String channel, Color c, int bitDepth) {
-      displaySettings_.setBitDepth(channel, bitDepth);
-      displaySettings_.setColor(channel, c);
-   }
-
    public void setChannelColor(String channel, Color c) {
       displaySettings_.setColor(channel, c);
    }
@@ -391,15 +386,17 @@ public class NDViewer implements ViewerInterface {
                 stringAxes_.get(axis).add((String) axesPositions.get(axis));
                 if (axis.equals("channel")) {
                    String channelName = (String) axesPositions.get("channel");
+                   int bitDepth = dataSource_.getImageBitDepth(axesPositions);
                    //Add contrast controls and display settings
-                   displaySettings_.addChannel(channelName);
+                   displaySettings_.addChannel(channelName, bitDepth);
                    displayWindow_.addContrastControls(channelName);
                 }
              }
          }
          if (!displayWindow_.contrastControlsInitialized()) {
             // no channels have been added, so make a default one for monochrome display
-            displaySettings_.addChannel("");
+            int bitDepth = dataSource_.getImageBitDepth(axesPositions);
+            displaySettings_.addChannel("", bitDepth);
             displayWindow_.addContrastControls("");
          }
 

@@ -69,4 +69,10 @@ public interface DataSourceInterface {
     */
    public void close();
 
+   /**
+    * Get the bits per pixel of image with the given axes positions
+    * @param axesPositions
+    * @return
+    */
+   public int getImageBitDepth(HashMap<String, Object> axesPositions);
 }
