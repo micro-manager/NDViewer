@@ -71,7 +71,7 @@
            <goal>jar-no-fork</goal>
           </goals>
          </execution>
-        </executions>
+        </executions> 
        </plugin>
        <plugin>
         <groupId>org.apache.maven.plugins</groupId>
