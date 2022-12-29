@@ -15,7 +15,7 @@ import org.micromanager.ndviewer.overlay.Overlay;
  * Interface for external methods of an {@link NDViewer}. The only requirement
  * is to call {@link #newImageArrived(java.util.HashMap, java.lang.String) 
  * newImageArrived} method each time a new image is available. It may also
- * be helpful to call {@link #setChannelDisplaySettings(java.lang.String, java.awt.Color, int) 
+ * be helpful to call {@link #setChannelColor(java.lang.String, java.awt.Color, int)
  * bitDepth} before each image arrives to initialize preferred
  * contrast controls
  * 
@@ -35,9 +35,8 @@ public interface ViewerInterface {
     *
     * @param chName
     * @param c
-    * @param bitDepth
     */
-   void setChannelDisplaySettings(String chName, Color c, int bitDepth);
+   void setChannelColor(String chName, Color c);
 
    /**
     * Set the scrollbar with a given axis label to a position.
