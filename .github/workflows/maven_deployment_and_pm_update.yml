@@ -77,4 +77,5 @@ jobs:
     - name: push
       run: |
         cd pycro-manager
+        git pull # get any changes that have occured since cloning
         git push https://henrypinkard:${{ secrets.PYCRO_TOKEN }}@github.com/micro-manager/pycro-manager.git  
