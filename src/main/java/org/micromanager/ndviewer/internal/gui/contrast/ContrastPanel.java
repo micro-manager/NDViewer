@@ -113,6 +113,17 @@ public class ContrastPanel extends JPanel {
       this.repaint();
    }
 
+   public HistogramControlsState getHistogramControlsState() {
+      HistogramControlsState state = new HistogramControlsState();
+      state.autostretch = autostretchCheckBox_.isSelected();
+      state.percentToIgnore = (Double) rejectPercentSpinner_.getValue();
+      state.logHist = logHistCheckBox_.isSelected();
+      state.composite = compositeCheckBox_.isSelected();
+      state.ignoreOutliers = rejectOutliersCheckBox_.isSelected();
+      state.syncChannels = syncChannelsCheckBox_.isSelected();
+      return state;
+   }
+
    public HistogramControlsState createDefaultControlsState() {
       HistogramControlsState state = new HistogramControlsState();
       state.autostretch = prefs_.getBoolean(PREF_AUTOSTRETCH, true);
@@ -320,6 +331,10 @@ public class ContrastPanel extends JPanel {
 
    public void displaySettingsChanged() {
       histograms_.displaySettingsChanged();
+   }
+
+   public void setDisplaySettingsFromGUI() {
+      histograms_.setDisplaySettingsFromGUI();
    }
 
 

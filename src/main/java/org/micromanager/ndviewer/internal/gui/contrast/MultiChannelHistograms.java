@@ -48,6 +48,16 @@ final class MultiChannelHistograms extends JPanel {
       ccpList_ = new HashMap<String, ChannelControlPanel>();
 //      setupChannelControls();
    }
+
+   public void setDisplaySettingsFromGUI() {
+      HistogramControlsState state = contrastPanel_.getHistogramControlsState();
+      dispSettings_.setAutoscale(state.autostretch);
+      dispSettings_.setIgnoreOutliers(state.ignoreOutliers);
+      dispSettings_.setSyncChannels(state.syncChannels);
+      dispSettings_.setLogHist(state.logHist);
+      dispSettings_.setCompositeMode(state.composite);
+      dispSettings_.setIgnoreOutliersPercentage(state.percentToIgnore);
+   }
       
    public void displaySettingsChanged() {
       for (ChannelControlPanel c : ccpList_.values()) {
@@ -80,20 +90,15 @@ final class MultiChannelHistograms extends JPanel {
       //refresh display settings
 
       Color color;
+      int bitDepth = 16;
       try {
+         bitDepth = dispSettings_.getBitDepth(channelName);
          color = dispSettings_.getColor(channelName);
       } catch (Exception ex) {
          ex.printStackTrace();
          color = Color.white;
       }
-      int bitDepth = 16;
-      try {
-         bitDepth = dispSettings_.getBitDepth(channelName);
-      } catch (Exception ex) {
-         ex.printStackTrace();
-         bitDepth = 16;
-      }
-      
+
       //create new channel control panels as needed
       ChannelControlPanel ccp = new ChannelControlPanel(display_, contrastPanel_, channelName, color, bitDepth);
       ccpList_.put(channelName, ccp);

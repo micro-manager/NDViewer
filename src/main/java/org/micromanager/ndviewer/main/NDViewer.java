@@ -395,10 +395,18 @@ public class NDViewer implements ViewerInterface {
              if (!stringAxes_.get(axis).contains(axesPositions.get(axis))) {
                 stringAxes_.get(axis).add((String) axesPositions.get(axis));
                 if (axis.equals("channel")) {
+                   // make sure GUI and display settings are in sync
+                   displayWindow_.setDisplaySettingsFromGUI();
                    String channelName = (String) axesPositions.get("channel");
                    int bitDepth = dataSource_.getImageBitDepth(axesPositions);
                    //Add contrast controls and display settings
                    displaySettings_.addChannel(channelName, bitDepth);
+                   if (!displaySettings_.isCompositeMode()) {
+                      // set only this new channel active
+                      for (String cName :  stringAxes_.get("channel")) {
+                         displaySettings_.setActive(channelName, cName.equals(channelName));
+                      }
+                   }
                    displayWindow_.addContrastControls(channelName, true);
                 }
              }
