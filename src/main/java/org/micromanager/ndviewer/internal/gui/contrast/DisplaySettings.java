@@ -117,20 +117,6 @@ public class DisplaySettings {
       }
    }
 
-   public void setBitDepth(String channelName, int bitDepth) {
-      synchronized (this) {
-         try {
-            if (!json_.has(channelName)) {
-               addChannel(channelName, bitDepth);
-            }
-            json_.getJSONObject(channelName).put("BitDepth", bitDepth);
-            preferences_.putInt(PREF_KEY_BIT_DEPTH + channelName, bitDepth);
-         } catch (Exception ex) {
-            System.err.println("bitdepth missing from display settings");
-         }
-      }
-   }
-
    public int getBitDepth(String channelName) {
       synchronized (this) {
          try {

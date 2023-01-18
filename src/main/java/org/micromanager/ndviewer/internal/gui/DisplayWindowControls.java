@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import javax.swing.JPanel;
-import javax.swing.event.ListSelectionListener;
 import mmcorej.org.json.JSONObject;
 import org.micromanager.ndviewer.api.ControlsPanelInterface;
 import org.micromanager.ndviewer.main.NDViewer;
@@ -22,7 +21,7 @@ import org.micromanager.ndviewer.main.NDViewer;
 class DisplayWindowControls extends javax.swing.JPanel {
 
    private NDViewer display_;
- private ContrastPanel cpMagellan_;
+ private ContrastPanel contrastPanel_;
    private ArrayList<ControlsPanelInterface> customPanels_ = new ArrayList<ControlsPanelInterface>();
 
    /**
@@ -31,7 +30,7 @@ class DisplayWindowControls extends javax.swing.JPanel {
    public DisplayWindowControls(NDViewer disp, List<JPanel> additionalPanels, boolean nullAcq) {
       display_ = disp;
       initComponents();
-      metadataPanelMagellan_.setSummaryMetadata(disp.getSummaryMD());
+      metadataPanel2_.setSummaryMetadata(disp.getSummaryMD());
       this.setFocusable(false); //think this is good 
 
       //Always start showing contrast
@@ -52,31 +51,35 @@ class DisplayWindowControls extends javax.swing.JPanel {
       for (int i = 0; i < customPanels_.size(); i++) {
          customPanels_.get(i).close();
       }
-      cpMagellan_.onDisplayClose();
+      contrastPanel_.onDisplayClose();
    }
 
    void updateHistogramData(HashMap<String, int[]> hists) {
-      cpMagellan_.updateHistogramData(hists);
+      contrastPanel_.updateHistogramData(hists);
    }
 
    public void addContrastControls(String channelName) {
-      cpMagellan_.addContrastControls(channelName);
+      contrastPanel_.addContrastControls(channelName);
    }
 
    public void removeContrastControls(String channelName) {
-      cpMagellan_.removeContrastControls(channelName);
+      contrastPanel_.removeContrastControls(channelName);
    }
 
    public MetadataPanel getMetadataPanelMagellan() {
-      return metadataPanelMagellan_;
+      return metadataPanel2_;
    }
 
    void displaySettingsChanged() {
-      cpMagellan_.displaySettingsChanged();
+      contrastPanel_.displaySettingsChanged();
+   }
+
+   void setDisplaySettingsFromGUI() {
+      contrastPanel_.setDisplaySettingsFromGUI();
    }
 
    void setImageMetadata(JSONObject imageMD) {
-      metadataPanelMagellan_.updateImageMetadata(imageMD);
+      metadataPanel2_.updateImageMetadata(imageMD);
    }
 
    /**
@@ -91,7 +94,7 @@ class DisplayWindowControls extends javax.swing.JPanel {
       tabbedPane_ = new javax.swing.JTabbedPane();
       contrastPanelPanel_ = new javax.swing.JPanel();
       metadataPanel_ = new javax.swing.JPanel();
-      metadataPanelMagellan_ = new org.micromanager.ndviewer.internal.gui.MetadataPanel();
+      metadataPanel2_ = new org.micromanager.ndviewer.internal.gui.MetadataPanel();
       topControlPanel_ = new javax.swing.JPanel();
       showInFolderButton_ = new javax.swing.JButton();
       abortButton_ = new javax.swing.JButton();
@@ -112,8 +115,8 @@ class DisplayWindowControls extends javax.swing.JPanel {
 
       contrastPanelPanel_.setLayout(new java.awt.BorderLayout());
 
-      cpMagellan_ = new ContrastPanel(display_);
-      contrastPanelPanel_.add(cpMagellan_);
+      contrastPanel_ = new ContrastPanel(display_);
+      contrastPanelPanel_.add(contrastPanel_);
 
       tabbedPane_.addTab("Contrast", contrastPanelPanel_);
 
@@ -121,11 +124,11 @@ class DisplayWindowControls extends javax.swing.JPanel {
       metadataPanel_.setLayout(metadataPanel_Layout);
       metadataPanel_Layout.setHorizontalGroup(
          metadataPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addComponent(metadataPanelMagellan_, javax.swing.GroupLayout.DEFAULT_SIZE, 670, Short.MAX_VALUE)
+         .addComponent(metadataPanel2_, javax.swing.GroupLayout.DEFAULT_SIZE, 670, Short.MAX_VALUE)
       );
       metadataPanel_Layout.setVerticalGroup(
          metadataPanel_Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-         .addComponent(metadataPanelMagellan_, javax.swing.GroupLayout.DEFAULT_SIZE, 615, Short.MAX_VALUE)
+         .addComponent(metadataPanel2_, javax.swing.GroupLayout.DEFAULT_SIZE, 615, Short.MAX_VALUE)
       );
 
       tabbedPane_.addTab("Metadata", metadataPanel_);
@@ -320,7 +323,7 @@ class DisplayWindowControls extends javax.swing.JPanel {
    private javax.swing.JPanel contrastPanelPanel_;
    private javax.swing.JLabel fpsLabel_;
    private javax.swing.JCheckBox lockScrollbarsCheckBox_;
-   private org.micromanager.ndviewer.internal.gui.MetadataPanel metadataPanelMagellan_;
+   private org.micromanager.ndviewer.internal.gui.MetadataPanel metadataPanel2_;
    private javax.swing.JPanel metadataPanel_;
    private javax.swing.JButton pauseButton_;
    private javax.swing.JCheckBox scaleBarCheckBox_;

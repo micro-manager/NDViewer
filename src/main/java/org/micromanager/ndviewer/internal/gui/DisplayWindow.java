@@ -318,6 +318,10 @@ public class DisplayWindow implements WindowListener {
       sideControls_.displaySettingsChanged();
    }
 
+   public void setDisplaySettingsFromGUI() {
+      sideControls_.setDisplaySettingsFromGUI();
+   }
+
    public void setCustomCanvasMouseListener(CanvasMouseListenerInterface m) {
       //out with the old
       imageCanvas_.getCanvas().removeMouseListener(listener_);
