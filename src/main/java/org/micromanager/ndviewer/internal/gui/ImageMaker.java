@@ -81,12 +81,24 @@ public class ImageMaker {
    }
 
    /**
+    *
+    */
+   public void removeImageProcessor(String channelName) {
+      synchronized (this) {
+         channelProcessors_.remove(channelName);
+      }
+   }
+
+
+   /**
     * Do neccesary calcualtion to get image for display
     *
     * @return
     */
    public Image makeOrGetImage(DataViewCoords viewCoords) {
-      boolean remakeDisplayImage = false; //remake the actual Iamge object if size has changed, otherwise just set pixels
+      try {
+
+         boolean remakeDisplayImage = false; //remake the actual Iamge object if size has changed, otherwise just set pixels
       if (((int) viewCoords.getSourceImageSizeAtResLevel().x) != imageWidth_
               || ((int)viewCoords.getSourceImageSizeAtResLevel().y) != imageHeight_) {
          imageWidth_ = (int) viewCoords.getSourceImageSizeAtResLevel().x;
@@ -137,7 +149,6 @@ public class ImageMaker {
          }
       }
 
-      try {
          boolean firstActive = true;
          Arrays.fill(rgbPixels_, 0);
          int redValue, greenValue, blueValue;
@@ -220,10 +231,7 @@ public class ImageMaker {
             }
 
          }
-      } catch (Exception e) {
-         e.printStackTrace();
-         throw new RuntimeException(e);
-      }
+
 
       if (imageSource_ == null || remakeDisplayImage) {
          imageSource_ = new MemoryImageSource(imageWidth_, imageHeight_, rgbCM_, rgbPixels_, 0, imageWidth_);
@@ -232,6 +240,10 @@ public class ImageMaker {
          displayImage_ = Toolkit.getDefaultToolkit().createImage(imageSource_);
       } else {
          imageSource_.newPixels(rgbPixels_, rgbCM_, 0, imageWidth_);
+      }
+      } catch (Exception e) {
+         e.printStackTrace();
+         throw new RuntimeException(e);
       }
       return displayImage_;
    }

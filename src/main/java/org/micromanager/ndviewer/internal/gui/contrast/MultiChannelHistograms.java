@@ -110,6 +110,13 @@ final class MultiChannelHistograms extends JPanel {
       contrastPanel_.revalidate();
    }
 
+
+   public void removeContrastControls(String channelName) {
+      ChannelControlPanel c = ccpList_.remove(channelName);
+      this.remove(c);
+      contrastPanel_.revalidate();
+   }
+
    public void autoscaleAllChannels() {
       if (ccpList_ != null && ccpList_.size() > 0) {
          for (ChannelControlPanel c : ccpList_.values()) {
@@ -131,8 +138,14 @@ final class MultiChannelHistograms extends JPanel {
    }
 
    void updateHistogramData(HashMap<String, int[]> hists) {
+      if (ccpList_ == null || hists == null || ccpList_.size() == 0) {
+         return; // no channels added yet
+      }
       for (String i : hists.keySet()) {
-         ccpList_.get(i).updateHistogram(hists.get(i));
+         ChannelControlPanel c = ccpList_.get(i);
+         int[] hist = hists.get(i);
+         c.updateHistogram(hist);
       }
    }
+
 }

@@ -88,6 +88,10 @@ public class ContrastPanel extends JPanel {
       histograms_.addContrastControls(channelName);
    }
 
+   public void removeContrastControls(String channelName) {
+      histograms_.removeContrastControls(channelName);
+   }
+
    private void initializeHistogramDisplayArea() {
       histDisplayScrollPane_.setHorizontalScrollBarPolicy(
             ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -317,4 +321,6 @@ public class ContrastPanel extends JPanel {
    public void displaySettingsChanged() {
       histograms_.displaySettingsChanged();
    }
+
+
 }
