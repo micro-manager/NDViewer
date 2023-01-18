@@ -81,7 +81,7 @@ public class NDViewer implements ViewerInterface {
    // Axes may use integer or string positions. Keep track of which
    // uses which ones do this here, and which string values map to which
    // Integer positions (because these are needed for display)
-   private ConcurrentHashMap<String, LinkedList<String>> stringAxes_;
+   private ConcurrentHashMap<String, LinkedList<String>> stringAxes_ = new ConcurrentHashMap<>();
 
    private Function<JSONObject, Long> readTimeFunction_ = null;
    private Function<JSONObject, Double> readZFunction_ = null;
@@ -116,6 +116,11 @@ public class NDViewer implements ViewerInterface {
       displayWindow_ = new DisplayWindow(this, acq == null);
       overlayer_ = new BaseOverlayer(this);
       imageMaker_ = new ImageMaker(this, cache);
+
+      // create a default display channel so something shows (needed for explore acq)
+         // no channels have been added, so make a default one for monochrome display
+      displaySettings_.addChannel("", 16); // Guess for now, remove later
+      displayWindow_.addContrastControls("", false);
    }
 
    /**
@@ -292,13 +297,15 @@ public class NDViewer implements ViewerInterface {
 
    public void initializeViewerToLoaded(List<String> channelNames, JSONObject dispSettings,
            HashMap<String, Object> axisMins, HashMap<String, Object> axisMaxs) {
+      // remove the defaut one added as a placeholder
+      displayWindow_.removeContrastControls("");
+      imageMaker_.removeImageProcessor("");
       displaySettings_ = new DisplaySettings(dispSettings, getPreferences());
-      stringAxes_ = new ConcurrentHashMap<String, LinkedList<String>>();
       if (channelNames.size() != 0) {
          stringAxes_.put("channel", new LinkedList<String>());
          for (int c = 0; c < channelNames.size(); c++) {
             stringAxes_.get("channel").add(channelNames.get(c));
-            displayWindow_.addContrastControls(channelNames.get(c));
+            displayWindow_.addContrastControls(channelNames.get(c), true);
             if (c == 0) {
                axisMins.put("channel", channelNames.get(c));
             } else if (c == channelNames.size() - 1) {
@@ -309,7 +316,7 @@ public class NDViewer implements ViewerInterface {
       if (!displayWindow_.contrastControlsInitialized()) {
          // no channels have been added, so make a default one for monochrome display
 //         displaySettings_.addChannel("");
-         displayWindow_.addContrastControls("");
+         displayWindow_.addContrastControls("", true);
       }
       //maximum scrollbar extents
       edtRunnablePool_.invokeLaterWithCoalescence(
@@ -352,6 +359,12 @@ public class NDViewer implements ViewerInterface {
     */
    public void newImageArrived(HashMap<String, Object> axesPositions) {
       try {
+         if (!displayWindow_.contrastControlsInitialized()) {
+            // remove the default one that was added as a placeholder
+            displayWindow_.removeContrastControls("");
+            imageMaker_.removeImageProcessor("");
+         }
+
          if (isImageXYBounded()) {
             int[] newBounds = dataSource_.getBounds();
             int[] oldBounds = viewCoords_.getBounds();
@@ -373,9 +386,6 @@ public class NDViewer implements ViewerInterface {
 
          // Keep track of axes with String values
          for (String axis : axesPositions.keySet()) {
-            if (stringAxes_ == null) {
-               stringAxes_ = new ConcurrentHashMap<String, LinkedList<String>>();
-            }
             if (!(axesPositions.get(axis) instanceof String) ) {
                continue;
             }
@@ -389,15 +399,16 @@ public class NDViewer implements ViewerInterface {
                    int bitDepth = dataSource_.getImageBitDepth(axesPositions);
                    //Add contrast controls and display settings
                    displaySettings_.addChannel(channelName, bitDepth);
-                   displayWindow_.addContrastControls(channelName);
+                   displayWindow_.addContrastControls(channelName, true);
                 }
              }
          }
+
          if (!displayWindow_.contrastControlsInitialized()) {
             // no channels have been added, so make a default one for monochrome display
             int bitDepth = dataSource_.getImageBitDepth(axesPositions);
             displaySettings_.addChannel("", bitDepth);
-            displayWindow_.addContrastControls("");
+            displayWindow_.addContrastControls("", true);
          }
 
          //expand the scrollbars with new images
@@ -561,6 +572,10 @@ public class NDViewer implements ViewerInterface {
    }
 
    public void setCompositeMode(boolean selected) {
+      if (stringAxes_ == null || stringAxes_.size() == 0) {
+         // this seems to happen in a not reproducible way. not sure why, but seems safe to ignore
+         return;
+      }
       displaySettings_.setCompositeMode(selected);
       //select all channels if composite mode is being turned on
       if (selected) {

@@ -180,6 +180,9 @@ public class DisplaySettings {
 
    public boolean isActive(String channelName) {
       synchronized (this) {
+         if (channelName.equals("")) {
+            return true; // this is default when no channels present
+         }
          try {
             return json_.getJSONObject(channelName).getBoolean("Active");
          } catch (Exception ex) {

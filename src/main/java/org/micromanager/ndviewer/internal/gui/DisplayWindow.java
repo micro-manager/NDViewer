@@ -154,9 +154,14 @@ public class DisplayWindow implements WindowListener {
       return contrastInitilized_;
    }
 
-   public void addContrastControls(String channelName) {
+   public void addContrastControls(String channelName, boolean markInitialized) {
       sideControls_.addContrastControls(channelName);
-      contrastInitilized_ = true;
+      contrastInitilized_ = markInitialized;
+   }
+
+
+   public void removeContrastControls(String channelName) {
+      sideControls_.removeContrastControls(channelName);
    }
 
    public void collapseOrExpandSideControls(boolean expand) {

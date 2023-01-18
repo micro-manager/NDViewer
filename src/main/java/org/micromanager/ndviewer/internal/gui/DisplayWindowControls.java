@@ -63,6 +63,10 @@ class DisplayWindowControls extends javax.swing.JPanel {
       cpMagellan_.addContrastControls(channelName);
    }
 
+   public void removeContrastControls(String channelName) {
+      cpMagellan_.removeContrastControls(channelName);
+   }
+
    public MetadataPanel getMetadataPanelMagellan() {
       return metadataPanelMagellan_;
    }
@@ -325,6 +329,8 @@ class DisplayWindowControls extends javax.swing.JPanel {
    private javax.swing.JCheckBox timeCheckBox_;
    private javax.swing.JPanel topControlPanel_;
    private javax.swing.JCheckBox zPositiionCheckBox_;
+
+
    // End of variables declaration//GEN-END:variables
 
 }
