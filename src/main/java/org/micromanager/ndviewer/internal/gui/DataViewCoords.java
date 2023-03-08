@@ -7,8 +7,8 @@ package org.micromanager.ndviewer.internal.gui;
 
 import java.awt.geom.Point2D;
 import java.util.HashMap;
-import java.util.HashSet;
-import org.micromanager.ndviewer.api.DataSourceInterface;
+
+import org.micromanager.ndviewer.api.NDViewerDataSource;
 
 /**
  *
@@ -23,15 +23,15 @@ public class DataViewCoords {
    private double xView_, yView_; //top left pixel in full res coordinates
    private HashMap<String, Object> axes_ = new HashMap<String, Object>();
    private int resolutionIndex_;
-   private DataSourceInterface cache_;
+   private NDViewerDataSource cache_;
    private boolean rgb_;
    private boolean sourceDataWidthInitialized_ = false;
 
    //Parameters that track what part of the dataset is being viewed
    public int xMax_, yMax_, xMin_, yMin_;
 
-   public DataViewCoords(DataSourceInterface cache, double xView, double yView,
-           Double initialWidth, Double initialHeight, int[] imageBounds, boolean rgb) {
+   public DataViewCoords(NDViewerDataSource cache, double xView, double yView,
+                         Double initialWidth, Double initialHeight, int[] imageBounds, boolean rgb) {
       cache_ = cache;
       xView_ = 0;
       yView_ = 0;
@@ -171,7 +171,7 @@ public class DataViewCoords {
    }
 
    public String getActiveChannel() {
-      return axes_.get("channel") != null ? (String) axes_.get("channel") : "" ;
+      return axes_.get("channel") != null ? "" + axes_.get("channel") : "" ;
    }
 
    public HashMap<String, Object> getAxesPositions() {

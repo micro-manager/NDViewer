@@ -5,6 +5,8 @@ import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.swing.JPanel;
 import mmcorej.org.json.JSONObject;
@@ -20,7 +22,7 @@ import org.micromanager.ndviewer.overlay.Overlay;
  * contrast controls
  * 
  */
-public interface ViewerInterface {
+public interface NDViewerAPI {
    
    /**
     * Call this whenever a new image arrives to optionally show it, and also so
@@ -29,6 +31,13 @@ public interface ViewerInterface {
     * @param axes map of axis labels to integer positions or String labels.
     */
    void newImageArrived(HashMap<String, Object> axes);
+
+   /**
+    * Add a hook function that runs whenever setImage gets called,
+    * either programatically or by someone moving the scrollbars
+    * @param hook
+    */
+   void addSetImageHook(Consumer<HashMap<String, Object>> hook);
 
    /**
     * Set display settings for channel with the given name.

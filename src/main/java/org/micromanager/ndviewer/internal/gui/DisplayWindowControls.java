@@ -45,6 +45,14 @@ class DisplayWindowControls extends javax.swing.JPanel {
       tabbedPane_.addTab(panel.getTitle(), (JPanel) panel);
       customPanels_.add(panel);
       tabbedPane_.revalidate();
+      // refresh tabs knowledge of which is active
+      for (ControlsPanelInterface p : customPanels_) {
+         if (tabbedPane_.getSelectedComponent() == p) {
+            p.selected();
+         } else {
+            p.deselected();
+         }
+      }
    }
 
    public void onDisplayClose() {
@@ -283,7 +291,7 @@ class DisplayWindowControls extends javax.swing.JPanel {
    }//GEN-LAST:event_abortButton_ActionPerformed
 
    private void pauseButton_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pauseButton_ActionPerformed
-      display_.togglePauseAcquisition();
+      display_.setPausedAction(!display_.isAcquisitionPaused() );
       pauseButton_.setIcon(new javax.swing.ImageIcon(getClass().getResource(
               display_.isAcquisitionPaused() ? "/org/micromanager/ndviewer/play.png" : "/org/micromanager/ndviewer/pause.png")));
       repaint();

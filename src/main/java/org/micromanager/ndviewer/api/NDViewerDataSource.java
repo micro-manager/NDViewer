@@ -15,7 +15,7 @@ import mmcorej.TaggedImage;
  *
  * @author henrypinkard
  */
-public interface DataSourceInterface {
+public interface NDViewerDataSource {
 
    /**
     * The minimal and maximal pixel coordinates of the image to be viewed

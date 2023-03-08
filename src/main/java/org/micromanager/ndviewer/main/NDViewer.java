@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
@@ -39,10 +40,10 @@ import mmcorej.org.json.JSONException;
 import mmcorej.org.json.JSONObject;
 import org.micromanager.ndviewer.api.CanvasMouseListenerInterface;
 import org.micromanager.ndviewer.api.ControlsPanelInterface;
-import org.micromanager.ndviewer.api.DataSourceInterface;
+import org.micromanager.ndviewer.api.NDViewerDataSource;
 import org.micromanager.ndviewer.api.OverlayerPlugin;
-import org.micromanager.ndviewer.api.ViewerAcquisitionInterface;
-import org.micromanager.ndviewer.api.ViewerInterface;
+import org.micromanager.ndviewer.api.NDViewerAcqInterface;
+import org.micromanager.ndviewer.api.NDViewerAPI;
 import org.micromanager.ndviewer.internal.gui.AxisScroller;
 import org.micromanager.ndviewer.internal.gui.BaseOverlayer;
 import org.micromanager.ndviewer.internal.gui.CoalescentExecutor;
@@ -55,9 +56,9 @@ import org.micromanager.ndviewer.internal.gui.ViewerCanvas;
 import org.micromanager.ndviewer.internal.gui.contrast.DisplaySettings;
 import org.micromanager.ndviewer.overlay.Overlay;
 
-public class NDViewer implements ViewerInterface {
+public class NDViewer implements NDViewerAPI {
 
-   protected volatile DataSourceInterface dataSource_;
+   protected volatile NDViewerDataSource dataSource_;
    private volatile DisplaySettings displaySettings_;
 
    private DisplayCoalescentEDTRunnablePool edtRunnablePool_ =
@@ -75,7 +76,7 @@ public class NDViewer implements ViewerInterface {
    private double animationFPS_ = 7;
 
    protected DataViewCoords viewCoords_;
-   private volatile ViewerAcquisitionInterface acq_;
+   private volatile NDViewerAcqInterface acq_;
    private JSONObject summaryMetadata_;
    private volatile boolean closed_ = false;
    // Axes may use integer or string positions. Keep track of which
@@ -88,17 +89,18 @@ public class NDViewer implements ViewerInterface {
 
    private double pixelSizeUm_;
    private volatile JSONObject currentMetadata_;
+   private LinkedList<Consumer<HashMap<String, Object>>> setImageHooks_ = new LinkedList<Consumer<HashMap<String, Object>>>();
 
    private OverlayerPlugin overlayerPlugin_;
    private String preferencesKey_ = "";
 
-   public NDViewer(DataSourceInterface cache, ViewerAcquisitionInterface acq, JSONObject summaryMD,
+   public NDViewer(NDViewerDataSource cache, NDViewerAcqInterface acq, JSONObject summaryMD,
                    double pixelSize, boolean rgb) {
       this(cache, acq, summaryMD, pixelSize, rgb, null);
    }
 
-   public NDViewer(DataSourceInterface cache, ViewerAcquisitionInterface acq, JSONObject summaryMD,
-           double pixelSize, boolean rgb, String preferencesKey) {
+   public NDViewer(NDViewerDataSource cache, NDViewerAcqInterface acq, JSONObject summaryMD,
+                   double pixelSize, boolean rgb, String preferencesKey) {
       pixelSizeUm_ = pixelSize; //TODO: Could be replaced later with per image pixel size
       summaryMetadata_ = summaryMD;
       dataSource_ = cache;
@@ -360,7 +362,7 @@ public class NDViewer implements ViewerInterface {
    public void newImageArrived(HashMap<String, Object> axesPositions) {
       try {
          if (!displayWindow_.contrastControlsInitialized()) {
-            SwingUtilities.invokeLater(new Runnable() {
+            SwingUtilities.invokeAndWait(new Runnable() {
                @Override
                public void run() {
                   // remove the default one that was added as a placeholder
@@ -383,7 +385,7 @@ public class NDViewer implements ViewerInterface {
 
          if (axesPositions.containsKey("channel")) {
             String channelName = (String) axesPositions.get("channel");
-            SwingUtilities.invokeLater(new Runnable() {
+            SwingUtilities.invokeAndWait(new Runnable() {
                @Override
                public void run() {
                   if (viewCoords_.getActiveChannel() == null) {
@@ -404,7 +406,7 @@ public class NDViewer implements ViewerInterface {
              if (!stringAxes_.get(axis).contains(axesPositions.get(axis))) {
                 stringAxes_.get(axis).add((String) axesPositions.get(axis));
                 if (axis.equals("channel")) {
-                   SwingUtilities.invokeLater(new Runnable() {
+                   SwingUtilities.invokeAndWait(new Runnable() {
                       @Override
                       public void run() {
                          // make sure GUI and display settings are in sync
@@ -426,7 +428,7 @@ public class NDViewer implements ViewerInterface {
              }
          }
 
-         SwingUtilities.invokeLater(new Runnable() {
+         SwingUtilities.invokeAndWait(new Runnable() {
             @Override
             public void run() {
                if (!displayWindow_.contrastControlsInitialized()) {
@@ -445,6 +447,11 @@ public class NDViewer implements ViewerInterface {
       } catch (Exception e) {
          e.printStackTrace();
       }
+   }
+
+   @Override
+   public void addSetImageHook(Consumer<HashMap<String, Object>> hook) {
+      setImageHooks_.add(hook);
    }
 
    public void setAxisPosition(String axis, int position) {
@@ -475,6 +482,11 @@ public class NDViewer implements ViewerInterface {
             displaySettings_.setActive(c, c.equals(viewCoords_.getActiveChannel()));
             displayWindow_.displaySettingsChanged();
          }
+      }
+
+      //run hooks
+      for (Consumer<HashMap<String, Object>> hook : setImageHooks_) {
+         hook.accept(axes);
       }
 
       update();
@@ -567,8 +579,8 @@ public class NDViewer implements ViewerInterface {
       }
    }
 
-   public void togglePauseAcquisition() {
-      acq_.togglePaused();
+   public void setPausedAction(boolean paused) {
+      acq_.setPaused(paused);
    }
 
    public boolean isAcquisitionPaused() {
@@ -627,7 +639,7 @@ public class NDViewer implements ViewerInterface {
       return displaySettings_;
    }
 
-   public List<String> getChannels() {
+   public synchronized List<String> getChannels() {
       if (stringAxes_ == null) {
          return null;
       }
@@ -829,6 +841,7 @@ public class NDViewer implements ViewerInterface {
                if (animationTimer_ != null) {
                   animationTimer_.stop();
                }
+               setImageHooks_ = null;
                animationTimer_ = null;
                dataSource_ = null;
                displayWindow_ = null;

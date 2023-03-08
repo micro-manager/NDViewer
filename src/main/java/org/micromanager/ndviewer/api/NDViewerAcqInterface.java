@@ -13,13 +13,13 @@ package org.micromanager.ndviewer.api;
  * 
  * @author henrypinkard
  */
-public interface ViewerAcquisitionInterface {
+public interface NDViewerAcqInterface {
 
    public boolean isFinished();
 
    public void abort();
 
-   public void togglePaused();
+   public void setPaused(boolean paused);
 
    public boolean isPaused();
 
