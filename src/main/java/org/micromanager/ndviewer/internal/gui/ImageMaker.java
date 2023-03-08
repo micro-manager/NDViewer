@@ -14,7 +14,7 @@ import mmcorej.TaggedImage;
 import mmcorej.org.json.JSONObject;
 import org.micromanager.ndviewer.internal.gui.contrast.DisplaySettings;
 import org.micromanager.ndviewer.main.NDViewer;
-import org.micromanager.ndviewer.api.DataSourceInterface;
+import org.micromanager.ndviewer.api.NDViewerDataSource;
 
 /**
  * This Class essentially replaces CompositeImage in ImageJ, and uses low level
@@ -29,19 +29,21 @@ public class ImageMaker {
 
    private int imageWidth_, imageHeight_;
    private int[] rgbPixels_;
-   private DataSourceInterface imageCache_;
+   private NDViewerDataSource imageCache_;
    private Image displayImage_;
    private MemoryImageSource imageSource_;
    DirectColorModel rgbCM_ = new DirectColorModel(24, 0xff0000, 0xff00, 0xff);
    private JSONObject latestTags_;
    private NDViewer display_;
+   private boolean closed_ = false;
 
-   public ImageMaker(NDViewer c, DataSourceInterface data) {
+   public ImageMaker(NDViewer c, NDViewerDataSource data) {
       display_ = c;
       imageCache_ = data;
    }
 
    public void close() {
+      closed_ = true;
       display_ = null;
       imageCache_ = null;
    }
@@ -95,7 +97,10 @@ public class ImageMaker {
     *
     * @return
     */
-   public Image makeOrGetImage(DataViewCoords viewCoords) {
+   public synchronized Image makeOrGetImage(DataViewCoords viewCoords) {
+      if (closed_) {
+         return null;
+      }
       try {
 
          boolean remakeDisplayImage = false; //remake the actual Iamge object if size has changed, otherwise just set pixels

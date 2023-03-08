@@ -21,7 +21,7 @@ public interface OverlayerPlugin {
    /**
     * Called whenever the overlay needs to be drawn. Once it is ready, it should
     * be passed to the viewer by calling {@link org.micromanager.ndviewer.main.NDViewer#setOverlay(Overlay)}
-    * 
+    * This can happen multiple times within a call of this funtion (i.e. to show intermediate rendering progress)
     * @param defaultOverlay The base overlay which should be added onto
     * @param displayImageSize 
     * @param downsampleFactor
@@ -31,10 +31,10 @@ public interface OverlayerPlugin {
     * @param viewOffset
     * @throws InterruptedException 
     */
-   public void drawOverlay(Overlay defaultOverlay, Point2D.Double displayImageSize, 
+   public void drawOverlay(Overlay defaultOverlay, Point2D.Double displayImageSize,
            double downsampleFactor, Graphics g, HashMap<String, Object> axes,
            double magnification, Point2D.Double viewOffset) throws InterruptedException;
-   
-   
-   
+
+
+
 }
