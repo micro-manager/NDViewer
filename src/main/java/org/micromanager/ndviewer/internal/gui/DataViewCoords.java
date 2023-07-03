@@ -82,7 +82,7 @@ public class DataViewCoords {
    public void setFullResSourceDataSize(double newWidth, double newHeight) {
       sourceDataFullResWidth_ = newWidth;
       sourceDataFullResHeight_ = newHeight;
-      computeResIndex();
+      updateResIndex();
    }
 
    public Point2D.Double getFullResSourceDataSize() {
@@ -106,11 +106,15 @@ public class DataViewCoords {
       return displayImageWidth_ / (double) sourceDataFullResWidth_;
    }
 
-   private void computeResIndex() {
+   private void updateResIndex() {
       double resIndexFloat = Math.log(sourceDataFullResWidth_ / (double) displayImageWidth_) / Math.log(2);
-//      sourceDataFullResHeight_ / (double) displayImageHeight_
-      int newResIndexInt = (int) Math.min(cache_.getMaxResolutionIndex(), Math.max(0, Math.ceil(resIndexFloat)));
-      resolutionIndex_ = newResIndexInt;
+      resolutionIndex_ = (int) Math.max(0, Math.ceil(resIndexFloat));
+
+      // Let the storage know the viewer will be requesting data at this resolution
+      int currentMaxResIndex = cache_.getMaxResolutionIndex();
+      if (resolutionIndex_ > currentMaxResIndex) {
+         cache_.increaseMaxResolutionLevel(resolutionIndex_);
+      }
    }
 
    /**
@@ -139,7 +143,7 @@ public class DataViewCoords {
    public void setDisplayImageSize(int width, int height) {
       displayImageWidth_ = width;
       displayImageHeight_ = height;
-      computeResIndex();
+      updateResIndex();
    }
 
    public void setAxisPosition(String axis, Object position) {
