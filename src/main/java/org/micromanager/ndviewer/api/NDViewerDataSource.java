@@ -58,10 +58,17 @@ public interface NDViewerDataSource {
    public int getMaxResolutionIndex();
 
    /**
-    * Path to where the data is stored on disk, if applicable
-    *
-    * @return
+    * Viewer will be viewing at this res index, so make sure it exists
+    * @param newMaxResolutionLevel
     */
+   public void increaseMaxResolutionLevel(int newMaxResolutionLevel);
+
+
+      /**
+       * Path to where the data is stored on disk, if applicable
+       *
+       * @return
+       */
    public String getDiskLocation();
 
    /**
