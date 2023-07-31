@@ -430,4 +430,11 @@ public class DisplaySettings {
       }
    }
 
+   public void removeChannel(String channelName) {
+      json_.remove(channelName);
+   }
+
+   public boolean containsChannel(String channelName) {
+      return json_.has(channelName);
+   }
 }

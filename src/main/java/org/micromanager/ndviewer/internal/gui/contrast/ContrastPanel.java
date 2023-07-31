@@ -26,6 +26,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.HashMap;
+import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -190,7 +191,7 @@ public class ContrastPanel extends JPanel {
 
       this.setPreferredSize(new Dimension(400, 594));
 
-      compositeCheckBox_.setSelected(display_.isCompositMode());
+      compositeCheckBox_.setSelected(display_.getDisplayModel().isCompositeMode());
       compositeCheckBox_.addChangeListener(new ChangeListener() {
          @Override
          public void stateChanged(ChangeEvent e) {
@@ -329,13 +330,12 @@ public class ContrastPanel extends JPanel {
       histograms_.updateHistogramData(hists);
    }
 
-   public void displaySettingsChanged() {
-      histograms_.displaySettingsChanged();
+   public void updateActiveChannelCheckboxes() {
+      histograms_.updateActiveChannelCheckboxes();
    }
 
-   public void setDisplaySettingsFromGUI() {
-      histograms_.setDisplaySettingsFromGUI();
+   public void readHistogramControlsStateFromGUI() {
+      histograms_.readHistogramControlsStateFromGUI();
    }
-
 
 }

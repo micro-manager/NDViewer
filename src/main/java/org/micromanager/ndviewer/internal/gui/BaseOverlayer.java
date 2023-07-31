@@ -190,7 +190,7 @@ public class BaseOverlayer {
 
    private Overlay createDefaultOverlay(DataViewCoords viewCoords) {
       Overlay overlay = new Overlay();
-      if (display_.isImageXYBounded()) {
+      if (display_.getDataSource().getBounds() != null) {
          drawZoomIndicator(overlay, viewCoords);
       }
       if (showScalebar_) {

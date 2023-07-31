@@ -25,8 +25,9 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import javax.swing.JPanel;
-import org.micromanager.ndviewer.main.NDViewer;
 import org.micromanager.ndviewer.main.NDViewer;
 
 
@@ -36,7 +37,6 @@ final class MultiChannelHistograms extends JPanel {
    private NDViewer display_;
    private boolean updatingCombos_ = false;
    private ContrastPanel contrastPanel_;
-   private DisplaySettings dispSettings_;
 
    public MultiChannelHistograms(NDViewer disp, ContrastPanel contrastPanel) {
       super();
@@ -47,30 +47,27 @@ final class MultiChannelHistograms extends JPanel {
       contrastPanel_ = contrastPanel;
       ccpList_ = new HashMap<String, ChannelControlPanel>();
 //      setupChannelControls();
+
+      // default initialization show a single set of contrast controls
+      addContrastControls(NDViewer.NO_CHANNEL);
    }
 
-   public void setDisplaySettingsFromGUI() {
+   public void readHistogramControlsStateFromGUI() {
       HistogramControlsState state = contrastPanel_.getHistogramControlsState();
-      dispSettings_.setAutoscale(state.autostretch);
-      dispSettings_.setIgnoreOutliers(state.ignoreOutliers);
-      dispSettings_.setSyncChannels(state.syncChannels);
-      dispSettings_.setLogHist(state.logHist);
-      dispSettings_.setCompositeMode(state.composite);
-      dispSettings_.setIgnoreOutliersPercentage(state.percentToIgnore);
+      display_.setHistogramSettings(state.autostretch, state.ignoreOutliers, state.syncChannels,
+              state.logHist, state.composite, state.percentToIgnore);
    }
       
-   public void displaySettingsChanged() {
+   public void updateActiveChannelCheckboxes() {
       for (ChannelControlPanel c : ccpList_.values()) {
-         c.updateActiveCheckbox(dispSettings_.isActive(c.getChannelName()));
+         c.updateActiveCheckbox(display_.getDisplayModel().isChannelActive(c.getChannelName()));
       }
    }
    
    public void onDisplayClose() {
       display_ = null;
-
       ccpList_ = null;
       contrastPanel_ = null;
-      dispSettings_ = null;
    }
 
    public void addContrastControls(String channelName) {
@@ -86,14 +83,22 @@ final class MultiChannelHistograms extends JPanel {
 //         nChannels *= 3;
 //      }
 
-      dispSettings_ = display_.getDisplaySettingsObject();
+
+      // If theres a dummy contrast control placeholder here, remove it
+      if (!channelName.equals(NDViewer.NO_CHANNEL) &&
+              getContrastControlKeys().contains(NDViewer.NO_CHANNEL)) {
+         removeContrastControls(NDViewer.NO_CHANNEL);
+      }
+
+
+      DisplaySettings dispSettings = display_.getDisplaySettingsObject();
       //refresh display settings
 
       Color color;
       int bitDepth = 16;
       try {
-         bitDepth = dispSettings_.getBitDepth(channelName);
-         color = dispSettings_.getColor(channelName);
+         bitDepth = dispSettings.getBitDepth(channelName);
+         color = dispSettings.getColor(channelName);
       } catch (Exception ex) {
          ex.printStackTrace();
          color = Color.white;
@@ -153,4 +158,7 @@ final class MultiChannelHistograms extends JPanel {
       }
    }
 
+   public List<String> getContrastControlKeys() {
+      return new LinkedList<String>(ccpList_.keySet());
+   }
 }

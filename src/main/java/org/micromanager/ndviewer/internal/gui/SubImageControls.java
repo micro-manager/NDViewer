@@ -111,7 +111,7 @@ class SubImageControls extends JPanel {
          if (axisPosition instanceof Integer) {
             a.setPosition((Integer) axisPosition);
          } else {
-            a.setPosition(display_.getIntegerPositionFromStringPosition(a.getAxis(), (String) axisPosition));
+            a.setPosition(display_.getDisplayModel().getIntegerPositionFromStringPosition(a.getAxis(), (String) axisPosition));
          }
       }
    }

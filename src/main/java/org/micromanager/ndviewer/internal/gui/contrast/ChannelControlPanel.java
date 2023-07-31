@@ -21,13 +21,10 @@
 //
 package org.micromanager.ndviewer.internal.gui.contrast;
 
-import org.micromanager.ndviewer.internal.gui.contrast.GraphData;
-import org.micromanager.ndviewer.internal.gui.contrast.HistogramPanel;
 import java.awt.*;
 import javax.swing.*;
-import org.micromanager.ndviewer.internal.gui.contrast.MultiChannelHistograms;
+
 import org.micromanager.ndviewer.internal.gui.contrast.HistogramPanel.CursorListener;
-import org.micromanager.ndviewer.main.NDViewer;
 import org.micromanager.ndviewer.main.NDViewer;
 
 /**
@@ -262,7 +259,7 @@ class ChannelControlPanel extends JPanel implements CursorListener {
    }
 
    private void channelNameCheckboxAction() {
-      display_.channelSetActive(channelName_, channelNameCheckbox_.isSelected());
+      display_.channelSetActiveByCheckbox(channelName_, channelNameCheckbox_.isSelected());
       display_.onContrastUpdated();
       redraw();
 

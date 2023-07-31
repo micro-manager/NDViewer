@@ -78,12 +78,12 @@ class DisplayWindowControls extends javax.swing.JPanel {
       return metadataPanel2_;
    }
 
-   void displaySettingsChanged() {
-      contrastPanel_.displaySettingsChanged();
+   void updateActiveChannelCheckboxes() {
+      contrastPanel_.updateActiveChannelCheckboxes();
    }
 
-   void setDisplaySettingsFromGUI() {
-      contrastPanel_.setDisplaySettingsFromGUI();
+   void readHistogramControlsStateFromGUI() {
+      contrastPanel_.readHistogramControlsStateFromGUI();
    }
 
    void setImageMetadata(JSONObject imageMD) {
@@ -298,7 +298,7 @@ class DisplayWindowControls extends javax.swing.JPanel {
    }//GEN-LAST:event_pauseButton_ActionPerformed
 
    private void animationFPSSpinner_StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_animationFPSSpinner_StateChanged
-      display_.setAnimateFPS(((Number) animationFPSSpinner_.getValue()).doubleValue());
+      display_.getGUIManager().setAnimateFPS(((Number) animationFPSSpinner_.getValue()).doubleValue());
    }//GEN-LAST:event_animationFPSSpinner_StateChanged
 
    private void lockScrollbarsCheckBox_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lockScrollbarsCheckBox_ActionPerformed
@@ -340,7 +340,6 @@ class DisplayWindowControls extends javax.swing.JPanel {
    private javax.swing.JCheckBox timeCheckBox_;
    private javax.swing.JPanel topControlPanel_;
    private javax.swing.JCheckBox zPositiionCheckBox_;
-
 
    // End of variables declaration//GEN-END:variables
 
