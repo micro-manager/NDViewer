@@ -364,7 +364,7 @@ public class DisplayModel {
       // Check for changed bounds of the underlying data
       if (display_.getDataSource().getBounds() != null) {
          int[] newBounds = display_.getDataSource().getBounds();
-         int[] oldBounds = display_.getDataSource().getBounds();
+         int[] oldBounds = display_.getDisplayModel().getBounds();
          double xResize = (oldBounds[2] - oldBounds[0]) / (double) (newBounds[2] - newBounds[0]);
          double yResize = (oldBounds[3] - oldBounds[1]) / (double) (newBounds[3] - newBounds[1]);
          setImageBounds(newBounds);
