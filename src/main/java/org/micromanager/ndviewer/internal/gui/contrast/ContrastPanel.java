@@ -84,8 +84,8 @@ public class ContrastPanel extends JPanel {
       histograms_ = null;
    }
 
-   public void addContrastControls(String channelName) {
-      histograms_.addContrastControls(channelName);
+   public void addContrastControlsIfNeeded(String channelName) {
+      histograms_.addContrastControlsIfNeeded(channelName);
    }
 
    public void removeContrastControls(String channelName) {
@@ -190,7 +190,7 @@ public class ContrastPanel extends JPanel {
 
       this.setPreferredSize(new Dimension(400, 594));
 
-      compositeCheckBox_.setSelected(display_.isCompositMode());
+      compositeCheckBox_.setSelected(display_.getDisplayModel().isCompositeMode());
       compositeCheckBox_.addChangeListener(new ChangeListener() {
          @Override
          public void stateChanged(ChangeEvent e) {
@@ -329,13 +329,12 @@ public class ContrastPanel extends JPanel {
       histograms_.updateHistogramData(hists);
    }
 
-   public void displaySettingsChanged() {
-      histograms_.displaySettingsChanged();
+   public void updateActiveChannelCheckboxes() {
+      histograms_.updateActiveChannelCheckboxes();
    }
 
-   public void setDisplaySettingsFromGUI() {
-      histograms_.setDisplaySettingsFromGUI();
+   public void readHistogramControlsStateFromGUI() {
+      histograms_.readHistogramControlsStateFromGUI();
    }
-
 
 }

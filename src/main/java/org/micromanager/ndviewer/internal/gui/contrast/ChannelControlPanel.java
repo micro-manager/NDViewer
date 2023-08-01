@@ -21,13 +21,10 @@
 //
 package org.micromanager.ndviewer.internal.gui.contrast;
 
-import org.micromanager.ndviewer.internal.gui.contrast.GraphData;
-import org.micromanager.ndviewer.internal.gui.contrast.HistogramPanel;
 import java.awt.*;
 import javax.swing.*;
-import org.micromanager.ndviewer.internal.gui.contrast.MultiChannelHistograms;
+
 import org.micromanager.ndviewer.internal.gui.contrast.HistogramPanel.CursorListener;
-import org.micromanager.ndviewer.main.NDViewer;
 import org.micromanager.ndviewer.main.NDViewer;
 
 /**
@@ -133,7 +130,7 @@ class ChannelControlPanel extends JPanel implements CursorListener {
          }
       });
 
-      channelNameCheckbox_.setText(channelName_.equals("Default") ? "" : channelName_ );
+      channelNameCheckbox_.setText(channelName_.equals(NDViewer.NO_CHANNEL) ? "" : channelName_ );
       channelNameCheckbox_.setToolTipText("Show/hide this channel in the multi-dimensional viewer");
       channelNameCheckbox_.addActionListener(new java.awt.event.ActionListener() {
 
@@ -262,7 +259,7 @@ class ChannelControlPanel extends JPanel implements CursorListener {
    }
 
    private void channelNameCheckboxAction() {
-      display_.channelSetActive(channelName_, channelNameCheckbox_.isSelected());
+      display_.channelSetActiveByCheckbox(channelName_, channelNameCheckbox_.isSelected());
       display_.onContrastUpdated();
       redraw();
 
@@ -276,7 +273,7 @@ class ChannelControlPanel extends JPanel implements CursorListener {
             if (channelNameCheckbox_.isSelected()) {
                super.paint(g);
                //For drawing max label
-               g.setColor(Color.black);
+               g.setColor(UIManager.getColor("Label.foreground"));
                g.setFont(new Font("Lucida Grande", 0, 10));
                g.drawString(histMaxLabel_, this.getSize().width - 8 * histMaxLabel_.length(), this.getSize().height);
             } else {

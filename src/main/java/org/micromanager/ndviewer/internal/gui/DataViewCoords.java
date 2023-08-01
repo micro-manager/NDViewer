@@ -9,6 +9,7 @@ import java.awt.geom.Point2D;
 import java.util.HashMap;
 
 import org.micromanager.ndviewer.api.NDViewerDataSource;
+import org.micromanager.ndviewer.main.NDViewer;
 
 /**
  *
@@ -23,16 +24,16 @@ public class DataViewCoords {
    private double xView_, yView_; //top left pixel in full res coordinates
    private HashMap<String, Object> axes_ = new HashMap<String, Object>();
    private int resolutionIndex_;
-   private NDViewerDataSource cache_;
+   private NDViewerDataSource data_;
    private boolean rgb_;
    private boolean sourceDataWidthInitialized_ = false;
 
    //Parameters that track what part of the dataset is being viewed
    public int xMax_, yMax_, xMin_, yMin_;
 
-   public DataViewCoords(NDViewerDataSource cache, double xView, double yView,
+   public DataViewCoords(NDViewerDataSource data, double xView, double yView,
                          Double initialWidth, Double initialHeight, int[] imageBounds, boolean rgb) {
-      cache_ = cache;
+      data_ = data;
       xView_ = 0;
       yView_ = 0;
       if (initialWidth == null) {
@@ -108,13 +109,15 @@ public class DataViewCoords {
 
    private void updateResIndex() {
       double resIndexFloat = Math.log(sourceDataFullResWidth_ / (double) displayImageWidth_) / Math.log(2);
-      resolutionIndex_ = (int) Math.max(0, Math.ceil(resIndexFloat));
+      int newResIndex = (int) Math.max(0, Math.ceil(resIndexFloat));
 
       // Let the storage know the viewer will be requesting data at this resolution
-      int currentMaxResIndex = cache_.getMaxResolutionIndex();
-      if (resolutionIndex_ > currentMaxResIndex) {
-         cache_.increaseMaxResolutionLevel(resolutionIndex_);
+      int currentMaxResIndex = data_.getMaxResolutionIndex();
+      if (newResIndex > currentMaxResIndex && !data_.isFinished()) {
+         // Try to increase max resolution level, though not guarenteed it will happen
+         data_.increaseMaxResolutionLevel(newResIndex);
       }
+      resolutionIndex_ = Math.min(newResIndex, data_.getMaxResolutionIndex());
    }
 
    /**
@@ -158,7 +161,7 @@ public class DataViewCoords {
    }
 
    public DataViewCoords copy() {
-      DataViewCoords view = new DataViewCoords(cache_, xView_, yView_,
+      DataViewCoords view = new DataViewCoords(data_, xView_, yView_,
               sourceDataFullResWidth_, sourceDataFullResHeight_, new int[]{xMin_, yMin_, xMax_, yMax_}, rgb_);
       for (String axisName : axes_.keySet()) {
          view.axes_.put(axisName, axes_.get(axisName));
@@ -174,17 +177,17 @@ public class DataViewCoords {
       return view;
    }
 
-   public String getActiveChannel() {
-      return axes_.get("channel") != null ? "" + axes_.get("channel") : "" ;
-   }
+//   public String getActiveChannel() {
+//      return axes_.get("channel") != null ? "" + axes_.get("channel") : "" ;
+//   }
 
    public HashMap<String, Object> getAxesPositions() {
       return axes_;
    }
 
-   public void setActiveChannel(String channelName) {
-      axes_.put("channel", channelName);
-   }
+//   public void setActiveChannel(String channelName) {
+//      axes_.put(NDViewer.CHANNEL_AXIS, channelName);
+//   }
 
    public int[] getBounds() {
       return new int[]{xMin_, yMin_, xMax_, yMax_};

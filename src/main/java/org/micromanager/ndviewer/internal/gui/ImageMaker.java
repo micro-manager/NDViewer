@@ -9,6 +9,7 @@ import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.image.MemoryImageSource;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import mmcorej.TaggedImage;
 import mmcorej.org.json.JSONObject;
@@ -25,11 +26,11 @@ public class ImageMaker {
    public static final int EIGHTBIT = 0;
    public static final int SIXTEENBIT = 1;
 
-   private final TreeMap<String, NDVImageProcessor> channelProcessors_ = new TreeMap<String, NDVImageProcessor>();
+   private final ConcurrentHashMap<String, NDVImageProcessor> channelProcessors_ = new ConcurrentHashMap<String, NDVImageProcessor>();
 
    private int imageWidth_, imageHeight_;
    private int[] rgbPixels_;
-   private NDViewerDataSource imageCache_;
+   private NDViewerDataSource data_;
    private Image displayImage_;
    private MemoryImageSource imageSource_;
    DirectColorModel rgbCM_ = new DirectColorModel(24, 0xff0000, 0xff00, 0xff);
@@ -39,13 +40,13 @@ public class ImageMaker {
 
    public ImageMaker(NDViewer c, NDViewerDataSource data) {
       display_ = c;
-      imageCache_ = data;
+      data_ = data;
    }
 
    public void close() {
       closed_ = true;
       display_ = null;
-      imageCache_ = null;
+      data_ = null;
    }
 
    public JSONObject getLatestTags() {
@@ -59,7 +60,7 @@ public class ImageMaker {
       //The axes requested correspond to every scrollbar in the viewer. But all axes dont have to apply
       //  to every channel (for example, a maximum intensity projection doesnt have z axis). So search
       //   through all axes currently stored for this channel, and delete any axes from the request that arent present
-      Set<HashMap<String, Object>> allImageKeys = imageCache_.getImageKeys();
+      Set<HashMap<String, Object>> allImageKeys = data_.getImageKeys();
       HashSet<String> axesInChannel = new HashSet<String>();
       // If some axes aren't provided,
       for (HashMap<String, Object> key : allImageKeys) {
@@ -78,19 +79,9 @@ public class ImageMaker {
          }
       }
 
-      return imageCache_.getImageForDisplay(
+      return data_.getImageForDisplay(
               axes, resolutionindex, xOffset, yOffset, imageWidth, imageHeight);
    }
-
-   /**
-    *
-    */
-   public void removeImageProcessor(String channelName) {
-      synchronized (this) {
-         channelProcessors_.remove(channelName);
-      }
-   }
-
 
    /**
     * Do neccesary calcualtion to get image for display
@@ -112,22 +103,26 @@ public class ImageMaker {
          remakeDisplayImage = true;
       }
 
-//      List<String> channels = new LinkedList<String>();
-//      channels.addAll(display_.getChannels());
-//      // Needed so that a blank image is shown before what channels ar
-//      if (channels.size() == 0) {
-//         channels.add(null);
-//      }
-      //update pixels
-      if (display_.getChannels() != null) {
-         for (String channel : display_.getChannels()) {
-            //create channel processors as needed
-            synchronized (this) {
-               if (!channelProcessors_.containsKey(channel)) {
-                  channelProcessors_.put(channel, viewCoords.isRGB() ? new NDVImageProcessorRGB(imageWidth_, imageHeight_, channel) :
-                          new NDVImageProcessor(imageWidth_, imageHeight_, channel));
-               }
+
+      // If there are ever channels being computed that don't actually exist, get rid of them
+         for (String existingChannelName : channelProcessors_.keySet()) {
+            if (!display_.getDisplayModel().getDisplayedChannels().contains(existingChannelName)) {
+               channelProcessors_.remove(existingChannelName);
             }
+         }
+
+      //update pixels
+      if (display_.getDisplayModel().getDisplayedChannels() != null) {
+         latestTags_ = null;
+         DisplayModel displayModel = display_.getDisplayModel();
+         List<String> channels = new LinkedList<String>(displayModel.getDisplayedChannels());
+         for (String channel : channels) {
+            //create channel processors as needed
+            if (!channelProcessors_.containsKey(channel)) {
+               channelProcessors_.put(channel, viewCoords.isRGB() ? new NDVImageProcessorRGB(imageWidth_, imageHeight_, channel) :
+                       new NDVImageProcessor(imageWidth_, imageHeight_, channel));
+            }
+
             if (!display_.getDisplaySettingsObject().isActive(channel)) {
                continue;
             }
@@ -138,19 +133,24 @@ public class ImageMaker {
             long viewOffsetAtResY = (long) (viewCoords.getViewOffset().y / viewCoords.getDownsampleFactor());
 
             HashMap<String, Object> axes = new HashMap<String, Object>(viewCoords.getAxesPositions());
-            //replace channel axis position with the specific channel, because channels are overlayed despite only
-            // one being selected at a time. Unless channel is "", in which case there actually are no channels
-            if (!channel.equals("")) {
-               axes.put("channel", channel);
+            // axes contains a single position for channel, reflecting where the scrollbar is set. But we
+            // actually want to display all channels at once, so replace this with the one we are currently adding
+            // UNLESS the one we are currently adding is actually a dummy channel name because there are no channels
+            if (!channel.equals(NDViewer.NO_CHANNEL)) {
+               axes.put(NDViewer.CHANNEL_AXIS, channel);
+            } else {
+               axes.remove(NDViewer.CHANNEL_AXIS);
             }
+
             TaggedImage imageForDisplay = getDisplayImage(axes, viewCoords.getResolutionIndex(),
                     viewOffsetAtResX, viewOffsetAtResY, imagePixelWidth, imagePixelHeight);
 
-            if (viewCoords.getActiveChannel().equals(channel)) {
+            if (latestTags_ == null ||
+                    (viewCoords.getAxesPositions().containsKey(NDViewer.CHANNEL_AXIS)  &&
+                            viewCoords.getAxesPositions().get(NDViewer.CHANNEL_AXIS).equals(channel))) {
                latestTags_ = imageForDisplay.tags;
             }
             channelProcessors_.get(channel).changePixels(imageForDisplay.pix, imageWidth_, imageHeight_);
-
          }
       }
 

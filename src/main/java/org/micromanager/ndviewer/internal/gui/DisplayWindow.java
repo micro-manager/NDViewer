@@ -39,7 +39,6 @@ public class DisplayWindow implements WindowListener {
    private JButton collapseExpandButton_;
    private JPanel leftPanel_;
    private JPanel rightPanel_;
-   private boolean contrastInitilized_ = false;
 
    private NDViewer display_;
    JFrame window_;
@@ -150,18 +149,8 @@ public class DisplayWindow implements WindowListener {
       window_.revalidate();
    }
 
-   public boolean contrastControlsInitialized() {
-      return contrastInitilized_;
-   }
-
-   public void addContrastControls(String channelName, boolean markInitialized) {
-      sideControls_.addContrastControls(channelName);
-      contrastInitilized_ = markInitialized;
-   }
-
-
-   public void removeContrastControls(String channelName) {
-      sideControls_.removeContrastControls(channelName);
+   public void addContrastControlsIfNeeded(String channelName) {
+      sideControls_.addContrastControlsIfNeeded(channelName);
    }
 
    public void collapseOrExpandSideControls(boolean expand) {
@@ -314,12 +303,12 @@ public class DisplayWindow implements WindowListener {
       sideControls_.repaint();
    }
 
-   public void displaySettingsChanged() {
-      sideControls_.displaySettingsChanged();
+   public void updateActiveChannelCheckboxes() {
+      sideControls_.updateActiveChannelCheckboxes();
    }
 
-   public void setDisplaySettingsFromGUI() {
-      sideControls_.setDisplaySettingsFromGUI();
+   public void readHistogramControlsStateFromGUI() {
+      sideControls_.readHistogramControlsStateFromGUI();
    }
 
    public void setCustomCanvasMouseListener(CanvasMouseListenerInterface m) {

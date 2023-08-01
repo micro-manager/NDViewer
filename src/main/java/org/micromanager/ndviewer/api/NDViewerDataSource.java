@@ -17,6 +17,12 @@ import mmcorej.TaggedImage;
  */
 public interface NDViewerDataSource {
 
+
+   /**
+    * Is the dataset still acquiring data/be written
+    */
+   public boolean isFinished();
+
    /**
     * The minimal and maximal pixel coordinates of the image to be viewed
     * 

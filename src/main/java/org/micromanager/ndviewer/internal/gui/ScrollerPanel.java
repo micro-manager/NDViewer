@@ -99,8 +99,8 @@ class ScrollerPanel extends JPanel {
          String axis = scroller.getAxis();
          Object position = scroller.getPosition();
          // Convert string positions to integer positions
-         if (!display_.isIntegerAxis(axis)) {
-            position = display_.getStringPositionFromIntegerPosition(axis, (Integer) position);
+         if (!display_.getDisplayModel().isIntegerAxis(axis)) {
+            position = display_.getDisplayModel().getStringPositionFromIntegerPosition(axis, (Integer) position);
          }
          if (!lastImagePosition_.containsKey(axis)
                  || !lastImagePosition_.get(axis).equals(position)) {
@@ -173,10 +173,10 @@ class ScrollerPanel extends JPanel {
                continue; //these events have no information pertinent to this scroller
             }
             int imagePosition;
-            if (display_.isIntegerAxis(scroller.getAxis())) {
+            if (display_.getDisplayModel().isIntegerAxis(scroller.getAxis())) {
                imagePosition = (Integer) axes.get(scroller.getAxis());
             } else {
-               imagePosition = display_.getIntegerPositionFromStringPosition(
+               imagePosition = display_.getDisplayModel().getIntegerPositionFromStringPosition(
                        scroller.getAxis(), (String) axes.get(scroller.getAxis()));
             }
 
