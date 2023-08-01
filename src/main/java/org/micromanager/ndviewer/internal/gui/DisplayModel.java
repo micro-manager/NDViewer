@@ -208,11 +208,6 @@ public class DisplayModel {
    }
 
    public void setCompositeMode(boolean selected) {
-      ConcurrentHashMap<String, LinkedList<String>> stringAxes_ = display_.getDisplayModel().getStringAxes();
-      if (stringAxes_ == null || stringAxes_.size() == 0) {
-         // this seems to happen in a not reproducible way. not sure why, but seems safe to ignore
-         return;
-      }
       displaySettings_.setCompositeMode(selected);
       //select all channels if composite mode is being turned on
       if (selected) {
@@ -221,7 +216,7 @@ public class DisplayModel {
             display_.updateActiveChannelCheckboxes();
          }
       } else {
-         for (String channel : stringAxes_.get(NDViewer.CHANNEL_AXIS)) {
+         for (String channel : getDisplayedChannels()) {
          if (viewCoords_.getAxesPositions().containsKey(NDViewer.CHANNEL_AXIS)) {
              displaySettings_.setActive(channel, viewCoords_.getAxesPositions().get(NDViewer.CHANNEL_AXIS).equals(channel));
              display_.updateActiveChannelCheckboxes();
@@ -346,18 +341,21 @@ public class DisplayModel {
    }
 
    public void scrollbarsMoved(HashMap<String, Object> axes) {
-      //Update other channels if in single channel view mode
-//      if (!displaySettings_.isCompositeMode()) {
-//         //set all channels inactive except current one
-//         for (String c : display_.getDisplayModel().getStringAxes().get(NDViewer.CHANNEL_AXIS)) {
-//            displaySettings_.setActive(c, c.equals(viewCoords_.getActiveChannel()));
-//            displayWindow_.displaySettingsChanged();
-//         }
-//      }
-   }
+      // If the viewer is not in composite mode (i.e. one channel is shown at a time
+      // then when the scrollbars are moved, the active channel should be changed
+      // so that the checkbox changes
+      if (!displaySettings_.isCompositeMode()) {
+         //set all channels inactive except current one
+         if (viewCoords_.getAxesPositions().containsKey(NDViewer.CHANNEL_AXIS)) {
+            String activeChannel = (String) viewCoords_.getAxesPositions().get(NDViewer.CHANNEL_AXIS);
+            for (String c : getDisplayedChannels()) {
+               displaySettings_.setActive(c, activeChannel);
+               displaySettings_
+               displayWindow_.displaySettingsChanged();
+            }
+         }
 
-   private ConcurrentHashMap<String, LinkedList<String>> getStringAxes() {
-      return stringAxes_;
+      }
    }
 
    public void updateDisplayBounds() {

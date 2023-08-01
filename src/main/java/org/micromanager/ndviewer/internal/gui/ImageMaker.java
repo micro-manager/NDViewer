@@ -113,6 +113,7 @@ public class ImageMaker {
 
       //update pixels
       if (display_.getDisplayModel().getDisplayedChannels() != null) {
+         latestTags_ = null;
          for (String channel : display_.getDisplayModel().getDisplayedChannels()) {
             //create channel processors as needed
             if (!channelProcessors_.containsKey(channel)) {

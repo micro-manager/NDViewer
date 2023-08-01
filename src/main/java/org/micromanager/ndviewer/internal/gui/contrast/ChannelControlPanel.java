@@ -130,7 +130,7 @@ class ChannelControlPanel extends JPanel implements CursorListener {
          }
       });
 
-      channelNameCheckbox_.setText(channelName_.equals("Default") ? "" : channelName_ );
+      channelNameCheckbox_.setText(channelName_.equals(NDViewer.NO_CHANNEL) ? "" : channelName_ );
       channelNameCheckbox_.setToolTipText("Show/hide this channel in the multi-dimensional viewer");
       channelNameCheckbox_.addActionListener(new java.awt.event.ActionListener() {
 
