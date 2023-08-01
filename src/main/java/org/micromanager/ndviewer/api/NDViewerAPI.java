@@ -71,6 +71,7 @@ public interface NDViewerAPI {
     * @param axisMins map of axis names to miniumum extents (can be negative)
     * @param axisMaxs map of axis names to maximum extents
     */
+   @Deprecated
     void initializeViewerToLoaded(List<String> channelNames,
               JSONObject displaySettings,
               HashMap<String, Object> axisMins,

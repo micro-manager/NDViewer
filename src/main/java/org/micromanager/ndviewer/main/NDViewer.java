@@ -14,9 +14,7 @@
 
 package org.micromanager.ndviewer.main;
 
-import java.awt.Color;
-import java.awt.Image;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.prefs.Preferences;
@@ -89,8 +88,6 @@ public class NDViewer implements NDViewerAPI {
 
    public NDViewer(NDViewerDataSource dataSource, NDViewerAcqInterface acq, JSONObject summaryMD,
                    double pixelSize, boolean rgb, String preferencesKey) {
-
-      
       dataSource_ = dataSource;
       pixelSizeUm_ = pixelSize; //TODO: Could be replaced later with per image pixel size
       summaryMetadata_ = summaryMD;
@@ -101,7 +98,6 @@ public class NDViewer implements NDViewerAPI {
       }
       displayModel_ = new DisplayModel(this, dataSource_, getPreferences(), rgb);
       guiManager_ = new GuiManager(this, acq_ !=null);
-
    }
 
    public void setReadTimeMetadataFunction(Function<JSONObject, Long> fn) {
@@ -141,15 +137,63 @@ public class NDViewer implements NDViewerAPI {
    }
 
    public void onCanvasResize(int w, int h) {
+      if (guiManager_ == null) {
+         return; //Initializing
+      }
       guiManager_.onCanvasResize(w, h);
       displayModel_.onCanvasResize(w, h);
       update();
    }
 
-   public void initializeViewerToLoaded(List<String> channelNames, JSONObject dispSettings,
-           HashMap<String, Object> axisMins, HashMap<String, Object> axisMaxs) {
+   @Override
+   public void initializeViewerToLoaded(List<String> channelNames, JSONObject displaySettings, HashMap<String, Object> axisMins, HashMap<String, Object> axisMaxs) {
+      throw new UnsupportedOperationException("This method is deprecated");
+   }
 
-      guiManager_.initializeForLoadedData();
+   public void initializeViewerToLoaded(JSONObject dispSettings) {
+
+      displayModel_.setDisplaySettings_(new DisplaySettings(dispSettings, getPreferences()));
+      Set<HashMap<String, Object>> axesList = dataSource_.getImageKeys();
+//      //Hide row and column axes form the viewer
+//      if (axesNames.contains(MagellanMD.AXES_GRID_ROW)) {
+//         axesNames.remove(MagellanMD.AXES_GRID_ROW);
+//      }
+//      if (axesNames.contains(MagellanMD.AXES_GRID_COL)) {
+//         axesNames.remove(MagellanMD.AXES_GRID_COL);
+//      }
+
+      for (HashMap<String, Object> axesPositions : axesList) {
+         if (axesPositions.keySet().contains(NDViewer.CHANNEL_AXIS)) {
+            String channel = (String) axesPositions.get(NDViewer.CHANNEL_AXIS);
+            if (!displayModel_.getDisplayedChannels().contains(channel)) {
+               getGUIManager().addContrastControlsIfNeeded(channel);
+               // Make this channel option appear on scrollbars
+               edtRunnablePool_.invokeLaterWithCoalescence(
+                       new NDViewer.ExpandDisplayRangeCoalescentRunnable(axesPositions));
+            }
+         }
+         displayModel_.parseNewAxesToUpdateDisplayModel(axesPositions);
+      }
+
+      //TODO: wheres the override to ignore row/column axes?
+      HashMap<String, Object> axisMins = new HashMap<String, Object>();
+      HashMap<String, Object> axisMaxs = new HashMap<String, Object>();
+      for (HashMap<String, Object> ax : axesList) {
+         for (String axis : ax.keySet()) {
+            if (!getDisplayModel().isIntegerAxis(axis)) {
+               continue; // String axis, no min or max
+            }
+            if (!axisMins.containsKey(axis)) {
+               axisMins.put(axis, ax.get(axis));
+               axisMaxs.put(axis, ax.get(axis));
+            }
+            axisMins.put(axis, Math.min((Integer) ax.get(axis), (Integer) axisMins.get(axis)));
+            axisMaxs.put(axis, Math.max((Integer) ax.get(axis), (Integer) axisMaxs.get(axis)));
+         }
+
+      }
+
+
       //maximum scrollbar extents
       edtRunnablePool_.invokeLaterWithCoalescence(
               new NDViewer.ExpandDisplayRangeCoalescentRunnable(axisMaxs));
@@ -177,7 +221,7 @@ public class NDViewer implements NDViewerAPI {
          displayModel_.updateDisplayBounds();
 
          // This will go on to update the GUI as needed
-         displayModel_.updateAxes(axesPositions);
+         displayModel_.parseNewAxesToUpdateDisplayModel(axesPositions);
 
          //expand the scrollbars with new images
          edtRunnablePool_.invokeLaterWithCoalescence(
@@ -451,8 +495,8 @@ public class NDViewer implements NDViewerAPI {
 
       ExpandDisplayRangeCoalescentRunnable(HashMap<String, Object> axisPosisitons) {
          newIamgeEvents.add(axisPosisitons);
-         if (axisPosisitons.containsKey("channel")) {
-            activeChannels.add((String) axisPosisitons.get("channel"));
+         if (axisPosisitons.containsKey(NDViewer.CHANNEL_AXIS)) {
+            activeChannels.add((String) axisPosisitons.get(NDViewer.CHANNEL_AXIS));
          }
       }
 

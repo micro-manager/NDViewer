@@ -6,10 +6,13 @@
 package org.micromanager.ndviewer.internal.gui;
 
 import org.micromanager.ndviewer.internal.gui.contrast.ContrastPanel;
+
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import javax.swing.JPanel;
+import javax.swing.*;
+
 import mmcorej.org.json.JSONObject;
 import org.micromanager.ndviewer.api.ControlsPanelInterface;
 import org.micromanager.ndviewer.main.NDViewer;
@@ -66,8 +69,8 @@ class DisplayWindowControls extends javax.swing.JPanel {
       contrastPanel_.updateHistogramData(hists);
    }
 
-   public void addContrastControls(String channelName) {
-      contrastPanel_.addContrastControls(channelName);
+   public void addContrastControlsIfNeeded(String channelName) {
+      contrastPanel_.addContrastControlsIfNeeded(channelName);
    }
 
    public void removeContrastControls(String channelName) {
@@ -126,7 +129,6 @@ class DisplayWindowControls extends javax.swing.JPanel {
       contrastPanel_ = new ContrastPanel(display_);
       contrastPanelPanel_.add(contrastPanel_);
 
-      tabbedPane_.addTab("Contrast", contrastPanelPanel_);
 
       javax.swing.GroupLayout metadataPanel_Layout = new javax.swing.GroupLayout(metadataPanel_);
       metadataPanel_.setLayout(metadataPanel_Layout);
@@ -139,7 +141,27 @@ class DisplayWindowControls extends javax.swing.JPanel {
          .addComponent(metadataPanel2_, javax.swing.GroupLayout.DEFAULT_SIZE, 615, Short.MAX_VALUE)
       );
 
+      Color niceBlue = new Color(0, 126, 255);
+      Color labelForeground = UIManager.getColor("Label.foreground");
+
+      tabbedPane_.addTab("Contrast", contrastPanelPanel_);
+      tabbedPane_.setForegroundAt(0, niceBlue);
       tabbedPane_.addTab("Metadata", metadataPanel_);
+      tabbedPane_.setForegroundAt(1, labelForeground);
+
+      tabbedPane_.addChangeListener(e -> {
+         for (int i = 0; i < tabbedPane_.getTabCount(); i++) {
+            if (i == tabbedPane_.getSelectedIndex()) {
+               // Change color of selected tab.
+               tabbedPane_.setForegroundAt(i, niceBlue);
+            } else {
+               // Change color of unselected tabs.
+               tabbedPane_.setForegroundAt(i, labelForeground);
+            }
+         }
+      });
+
+
 
       showInFolderButton_.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/micromanager/ndviewer/folder.png"))); // NOI18N
       showInFolderButton_.setToolTipText("Show in folder");

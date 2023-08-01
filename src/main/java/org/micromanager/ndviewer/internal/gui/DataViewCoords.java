@@ -109,13 +109,15 @@ public class DataViewCoords {
 
    private void updateResIndex() {
       double resIndexFloat = Math.log(sourceDataFullResWidth_ / (double) displayImageWidth_) / Math.log(2);
-      resolutionIndex_ = (int) Math.max(0, Math.ceil(resIndexFloat));
+      int newResIndex = (int) Math.max(0, Math.ceil(resIndexFloat));
 
       // Let the storage know the viewer will be requesting data at this resolution
       int currentMaxResIndex = data_.getMaxResolutionIndex();
-      if (resolutionIndex_ > currentMaxResIndex) {
-         data_.increaseMaxResolutionLevel(resolutionIndex_);
+      if (newResIndex > currentMaxResIndex && !data_.isFinished()) {
+         // Try to increase max resolution level, though not guarenteed it will happen
+         data_.increaseMaxResolutionLevel(newResIndex);
       }
+      resolutionIndex_ = Math.min(newResIndex, data_.getMaxResolutionIndex());
    }
 
    /**

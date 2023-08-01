@@ -40,7 +40,8 @@ import javax.swing.UIManager;
 public class HistogramPanel extends JPanel implements FocusListener, KeyListener {
    
    private static final int LUT_HANDLE_SIZE = 10;
-   private static final Color HIGHLIGHT_COLOR = Color.blue;
+
+   private static final Color HIGHLIGHT_COLOR = new Color(0, 126, 255);
    private static final int TOP_HANDLE_OFFSET = isMac() ? 7 : 3;
    private static final int BOTTOM_HANDLE_OFFSET = isMac() ? 3 : 3;
    private static final int PIXELS_PER_HANDLE_DIGIT = 6;
@@ -235,12 +236,12 @@ public class HistogramPanel extends JPanel implements FocusListener, KeyListener
       if (contrastMaxEditable_) {
          g.setColor(HIGHLIGHT_COLOR);
          g.fillRect(x - width, y - LUT_HANDLE_SIZE, width, LUT_HANDLE_SIZE);
-         g.setColor(UIManager.getColor("Panel.background"));
+         g.setColor(UIManager.getColor("Label.foreground"));
          g.drawString(text, x - width, y - 1);
       } else {
          g.setColor(UIManager.getColor("Panel.background"));
          g.fillRect(x - width, y - LUT_HANDLE_SIZE, width, LUT_HANDLE_SIZE);
-         g.setColor(Color.black);
+         g.setColor(UIManager.getColor("Label.foreground"));
          g.drawString(text, x - width, y - 1);
       }
    }
@@ -256,13 +257,13 @@ public class HistogramPanel extends JPanel implements FocusListener, KeyListener
       if (contrastMinEditable_) {
          g.setColor(HIGHLIGHT_COLOR);
          g.fillRect(x, y, width, LUT_HANDLE_SIZE + 1);
-         g.setColor(UIManager.getColor("Panel.background"));
+         g.setColor(UIManager.getColor("Label.foreground"));
          g.drawString(newContrast_.length() != 0 ? newContrast_ : text, 
                x + BOTTOM_HANDLE_OFFSET, y + 10);
       } else {
          g.setColor(UIManager.getColor("Panel.background"));
          g.fillRect(x, y, width, LUT_HANDLE_SIZE + 1);
-         g.setColor(Color.black);
+         g.setColor(UIManager.getColor("Label.foreground"));
          g.drawString(text, x + BOTTOM_HANDLE_OFFSET, y + 10);
       }
    }

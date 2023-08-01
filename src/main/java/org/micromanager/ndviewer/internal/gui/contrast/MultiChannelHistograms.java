@@ -35,7 +35,6 @@ final class MultiChannelHistograms extends JPanel {
 
    private HashMap<String, ChannelControlPanel> ccpList_;
    private NDViewer display_;
-   private boolean updatingCombos_ = false;
    private ContrastPanel contrastPanel_;
 
    public MultiChannelHistograms(NDViewer disp, ContrastPanel contrastPanel) {
@@ -49,7 +48,7 @@ final class MultiChannelHistograms extends JPanel {
 //      setupChannelControls();
 
       // default initialization show a single set of contrast controls
-      addContrastControls(NDViewer.NO_CHANNEL);
+      addContrastControlsIfNeeded(NDViewer.NO_CHANNEL);
    }
 
    public void readHistogramControlsStateFromGUI() {
@@ -70,8 +69,13 @@ final class MultiChannelHistograms extends JPanel {
       contrastPanel_ = null;
    }
 
-   public void addContrastControls(String channelName) {
-      // bring back RGB if you want...
+   public void addContrastControlsIfNeeded(String channelName) {
+      synchronized (ccpList_) {
+         if (ccpList_.containsKey(channelName)) {
+            return; // Already added
+         }
+
+         // bring back RGB if you want...
 //      boolean rgb;
 //      try {
 //         rgb = display_.isRGB();
@@ -84,40 +88,41 @@ final class MultiChannelHistograms extends JPanel {
 //      }
 
 
-      // If theres a dummy contrast control placeholder here, remove it
-      if (!channelName.equals(NDViewer.NO_CHANNEL) &&
-              getContrastControlKeys().contains(NDViewer.NO_CHANNEL)) {
-         removeContrastControls(NDViewer.NO_CHANNEL);
+         // If theres a dummy contrast control placeholder here, remove it
+         if (!channelName.equals(NDViewer.NO_CHANNEL) &&
+                 getContrastControlKeys().contains(NDViewer.NO_CHANNEL)) {
+            removeContrastControls(NDViewer.NO_CHANNEL);
+         }
+
+
+         DisplaySettings dispSettings = display_.getDisplaySettingsObject();
+         //refresh display settings
+
+         Color color;
+         int bitDepth = 16;
+         try {
+            bitDepth = dispSettings.getBitDepth(channelName);
+            color = dispSettings.getColor(channelName);
+         } catch (Exception ex) {
+            ex.printStackTrace();
+            color = Color.white;
+         }
+
+         //create new channel control panels as needed
+         ChannelControlPanel ccp = new ChannelControlPanel(display_, contrastPanel_, channelName, color, bitDepth);
+         ccpList_.put(channelName, ccp);
+         this.add(ccpList_.get(channelName));
+
+         ((GridLayout) this.getLayout()).setRows(ccpList_.keySet().size());
+
+         Dimension dim = new Dimension(ChannelControlPanel.MINIMUM_SIZE.width,
+                 ccpList_.keySet().size() * ChannelControlPanel.MINIMUM_SIZE.height);
+         this.setMinimumSize(dim);
+         this.setSize(dim);
+         this.setPreferredSize(dim);
+         //Dunno if this is even needed
+         contrastPanel_.revalidate();
       }
-
-
-      DisplaySettings dispSettings = display_.getDisplaySettingsObject();
-      //refresh display settings
-
-      Color color;
-      int bitDepth = 16;
-      try {
-         bitDepth = dispSettings.getBitDepth(channelName);
-         color = dispSettings.getColor(channelName);
-      } catch (Exception ex) {
-         ex.printStackTrace();
-         color = Color.white;
-      }
-
-      //create new channel control panels as needed
-      ChannelControlPanel ccp = new ChannelControlPanel(display_, contrastPanel_, channelName, color, bitDepth);
-      ccpList_.put(channelName, ccp);
-      this.add(ccpList_.get(channelName));
-
-      ((GridLayout) this.getLayout()).setRows(ccpList_.keySet().size());
-
-      Dimension dim = new Dimension(ChannelControlPanel.MINIMUM_SIZE.width,
-              ccpList_.keySet().size() * ChannelControlPanel.MINIMUM_SIZE.height);
-      this.setMinimumSize(dim);
-      this.setSize(dim);
-      this.setPreferredSize(dim);
-      //Dunno if this is even needed
-      contrastPanel_.revalidate();
    }
 
 
@@ -148,13 +153,19 @@ final class MultiChannelHistograms extends JPanel {
    }
 
    void updateHistogramData(HashMap<String, int[]> hists) {
-      if (ccpList_ == null || hists == null || ccpList_.size() == 0) {
-         return; // no channels added yet
-      }
-      for (String i : hists.keySet()) {
-         ChannelControlPanel c = ccpList_.get(i);
-         int[] hist = hists.get(i);
-         c.updateHistogram(hist);
+      synchronized (ccpList_) {
+         if (ccpList_ == null || hists == null || ccpList_.size() == 0) {
+            return; // no channels added yet
+         }
+         if (ccpList_.keySet().size() != hists.keySet().size()) {
+            // Still initializing new channel
+            return;
+         }
+         for (String i : hists.keySet()) {
+            ChannelControlPanel c = ccpList_.get(i);
+            int[] hist = hists.get(i);
+            c.updateHistogram(hist);
+         }
       }
    }
 

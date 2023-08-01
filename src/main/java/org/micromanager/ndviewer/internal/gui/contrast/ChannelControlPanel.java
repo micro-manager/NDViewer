@@ -273,7 +273,7 @@ class ChannelControlPanel extends JPanel implements CursorListener {
             if (channelNameCheckbox_.isSelected()) {
                super.paint(g);
                //For drawing max label
-               g.setColor(Color.black);
+               g.setColor(UIManager.getColor("Label.foreground"));
                g.setFont(new Font("Lucida Grande", 0, 10));
                g.drawString(histMaxLabel_, this.getSize().width - 8 * histMaxLabel_.length(), this.getSize().height);
             } else {

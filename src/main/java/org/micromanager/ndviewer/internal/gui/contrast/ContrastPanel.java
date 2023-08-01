@@ -26,7 +26,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.HashMap;
-import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -85,8 +84,8 @@ public class ContrastPanel extends JPanel {
       histograms_ = null;
    }
 
-   public void addContrastControls(String channelName) {
-      histograms_.addContrastControls(channelName);
+   public void addContrastControlsIfNeeded(String channelName) {
+      histograms_.addContrastControlsIfNeeded(channelName);
    }
 
    public void removeContrastControls(String channelName) {

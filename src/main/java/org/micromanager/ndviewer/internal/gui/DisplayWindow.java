@@ -149,13 +149,8 @@ public class DisplayWindow implements WindowListener {
       window_.revalidate();
    }
 
-   public void addContrastControls(String channelName) {
-      sideControls_.addContrastControls(channelName);
-   }
-
-
-   public void removeContrastControls(String channelName) {
-      sideControls_.removeContrastControls(channelName);
+   public void addContrastControlsIfNeeded(String channelName) {
+      sideControls_.addContrastControlsIfNeeded(channelName);
    }
 
    public void collapseOrExpandSideControls(boolean expand) {

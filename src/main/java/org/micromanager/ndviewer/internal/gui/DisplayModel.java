@@ -8,7 +8,6 @@ import org.micromanager.ndviewer.main.NDViewer;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,6 +45,12 @@ public class DisplayModel {
               data.getBounds(), rgb);
    }
 
+   /**
+    * Need to call this when loading them from disk
+    */
+   public void setDisplaySettings_(DisplaySettings displaySettings_) {
+      this.displaySettings_ = displaySettings_;
+   }
 
    public int getIntegerPositionFromStringPosition(String axisName, String axisPosition) {
       return stringAxes_.get(axisName).indexOf(axisPosition);
@@ -243,7 +248,7 @@ public class DisplayModel {
    /**
     * Called upon a new image arriving
     */
-   public void updateAxes(HashMap<String, Object> axesPositions) throws InterruptedException, InvocationTargetException {
+   public void parseNewAxesToUpdateDisplayModel(HashMap<String, Object> axesPositions)  {
       // Update string valued axes, including channels
       for (String axis : axesPositions.keySet()) {
          if (!(axesPositions.get(axis) instanceof String)) {
@@ -255,66 +260,41 @@ public class DisplayModel {
          if (!stringAxes_.get(axis).contains(axesPositions.get(axis))) {
             stringAxes_.get(axis).add((String) axesPositions.get(axis));
             if (axis.equals(NDViewer.CHANNEL_AXIS)) {
-               SwingUtilities.invokeAndWait(new Runnable() {
-                  @Override
-                  public void run() {
-                     // make sure GUI and display settings are in sync
-                     display_.readHistogramControlsStateFromGUI();
-                     String channelName = (String) axesPositions.get(NDViewer.CHANNEL_AXIS);
+               try {
+                  SwingUtilities.invokeAndWait(new Runnable() {
+                     @Override
+                     public void run() {
+                        // make sure GUI and display settings are in sync
+                        display_.readHistogramControlsStateFromGUI();
+                        String channelName = (String) axesPositions.get(NDViewer.CHANNEL_AXIS);
 
-                     if (!channelName.equals(NDViewer.NO_CHANNEL) &&
-                             displaySettings_.containsChannel(NDViewer.NO_CHANNEL)) {
-                        // remove the dummy channel
-                        displaySettings_.removeChannel(NDViewer.NO_CHANNEL);
-                        // The GUI contrast controls will do this itself
-                     }
-
-                     int bitDepth = display_.getDataSource().getImageBitDepth(axesPositions);
-                     //Add contrast controls and display settings
-                     displaySettings_.addChannel(channelName, bitDepth);
-                     if (!displaySettings_.isCompositeMode()) {
-                        // set only this new channel active
-                        for (String cName : stringAxes_.get("channel")) {
-                           displaySettings_.setActive(channelName, cName.equals(channelName));
+                        if (!channelName.equals(NDViewer.NO_CHANNEL) &&
+                                displaySettings_.containsChannel(NDViewer.NO_CHANNEL)) {
+                           // remove the dummy channel
+                           displaySettings_.removeChannel(NDViewer.NO_CHANNEL);
                         }
+
+                        int bitDepth = display_.getDataSource().getImageBitDepth(axesPositions);
+                        //Add contrast controls and display settings
+                        if (!displaySettings_.containsChannel(channelName)) {
+                           displaySettings_.addChannel(channelName, bitDepth);
+                        }
+                        if (!displaySettings_.isCompositeMode()) {
+                           // set only this new channel active
+                           for (String cName : stringAxes_.get(NDViewer.CHANNEL_AXIS)) {
+                              displaySettings_.setActive(channelName, cName.equals(channelName));
+                           }
+                        }
+                        display_.getGUIManager().addContrastControlsIfNeeded(channelName);
                      }
-                     display_.getGUIManager().addContrastControls(channelName);
-                  }
-               });
+                  });
+               } catch (Exception e) {
+                  throw new RuntimeException(e);
+               }
             }
          }
       }
    }
-
-   public void initializeFromLoadedData() {
-      LinkedList<String> channelNames = new LinkedList<String>();
-      for (HashMap<String, Object> axes : display_.getDataSource().getImageKeys()) {
-         if (axes.containsKey(NDViewer.CHANNEL_AXIS)) {
-            if (!channelNames.contains(axes.get(NDViewer.CHANNEL_AXIS))) {
-               channelNames.add((String) axes.get(NDViewer.CHANNEL_AXIS));
-            }
-         }
-      }
-
-//      // remove the default one added as a placeholder
-//      // TODO
-////      displayWindow_.removeContrastControls("");
-////      imageMaker_.removeImageProcessor("");
-//      displaySettings_ = new DisplaySettings(dispSettings, getPreferences());
-//      if (channelNames.size() != 0) {
-//         stringAxes_.put(NDViewer.CHANNEL_AXIS, new LinkedList<String>());
-//         for (int c = 0; c < channelNames.size(); c++) {
-//            stringAxes_.get(NDViewer.CHANNEL_AXIS).add(channelNames.get(c));
-//            display_.getGUIManager().addContrastControls(channelNames.get(c), true);
-//            if (c == 0) {
-//               axisMins.put(NDViewer.CHANNEL_AXIS, channelNames.get(c));
-//            } else if (c == channelNames.size() - 1) {
-//               axisMaxs.put(NDViewer.CHANNEL_AXIS, channelNames.get(c));
-//            }
-//         }
-//      }
-   }
-
 
    public int[] getBounds() {
       return viewCoords_.getBounds();

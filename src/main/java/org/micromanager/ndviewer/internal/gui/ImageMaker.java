@@ -114,7 +114,9 @@ public class ImageMaker {
       //update pixels
       if (display_.getDisplayModel().getDisplayedChannels() != null) {
          latestTags_ = null;
-         for (String channel : display_.getDisplayModel().getDisplayedChannels()) {
+         DisplayModel displayModel = display_.getDisplayModel();
+         List<String> channels = new LinkedList<String>(displayModel.getDisplayedChannels());
+         for (String channel : channels) {
             //create channel processors as needed
             if (!channelProcessors_.containsKey(channel)) {
                channelProcessors_.put(channel, viewCoords.isRGB() ? new NDVImageProcessorRGB(imageWidth_, imageHeight_, channel) :

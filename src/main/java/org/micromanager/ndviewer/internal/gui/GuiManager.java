@@ -12,7 +12,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
-import java.util.List;
 
 public class GuiManager {
 
@@ -43,16 +42,6 @@ public class GuiManager {
          return; // during startup
       }
       displayWindow_.onCanvasResized(w, h);
-
-   }
-
-   public void initializeForLoadedData() {
-//      if (!displayWindow_.contrastControlsInitialized()) {
-//         // no channels have been added, so make a default one for monochrome display
-////         displaySettings_.addChannel("");
-////         displayWindow_.addContrastControls("");
-//         //TODO
-//      }
 
    }
 
@@ -181,8 +170,8 @@ public class GuiManager {
       displayWindow_.updateActiveChannelCheckboxes();
    }
 
-   public void addContrastControls(String channelName) {
-      displayWindow_.addContrastControls(channelName);
+   public void addContrastControlsIfNeeded(String channelName) {
+      displayWindow_.addContrastControlsIfNeeded(channelName);
    }
 
    public void readHistogramControlsStateFromGUI() {

@@ -5,8 +5,11 @@
  */
 package org.micromanager.ndviewer.internal.gui;
 
+import java.awt.*;
 import java.util.Timer;
 import mmcorej.org.json.JSONObject;
+
+import javax.swing.*;
 
 /**
  *
@@ -75,7 +78,6 @@ public class MetadataPanel extends javax.swing.JPanel {
          .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 283, Short.MAX_VALUE)
       );
 
-      acqImageTabbedPane_.addTab("Acquisition summary metadata", summaryMDPanel_);
 
       jTable2.setModel(imageMetadataModel_);
       jScrollPane1.setViewportView(jTable2);
@@ -92,6 +94,27 @@ public class MetadataPanel extends javax.swing.JPanel {
       );
 
       acqImageTabbedPane_.addTab("Image metadata", imageMDPanel_);
+      acqImageTabbedPane_.addTab("Acquisition summary metadata", summaryMDPanel_);
+
+
+      Color niceBlue = new Color(0, 126, 255);
+      Color labelForeground = UIManager.getColor("Label.foreground");
+
+      acqImageTabbedPane_.addChangeListener(e -> {
+         for (int i = 0; i < acqImageTabbedPane_.getTabCount(); i++) {
+            if (i == acqImageTabbedPane_.getSelectedIndex()) {
+               // Change color of selected tab.
+               acqImageTabbedPane_.setForegroundAt(i, niceBlue);
+            } else {
+               // Change color of unselected tabs.
+               acqImageTabbedPane_.setForegroundAt(i, labelForeground);
+            }
+         }
+      });
+
+      acqImageTabbedPane_.setForegroundAt(0, niceBlue);
+      acqImageTabbedPane_.setForegroundAt(1, labelForeground);
+
 
       javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
       this.setLayout(layout);
