@@ -349,12 +349,10 @@ public class DisplayModel {
          if (viewCoords_.getAxesPositions().containsKey(NDViewer.CHANNEL_AXIS)) {
             String activeChannel = (String) viewCoords_.getAxesPositions().get(NDViewer.CHANNEL_AXIS);
             for (String c : getDisplayedChannels()) {
-               displaySettings_.setActive(c, activeChannel);
-               displaySettings_
-               displayWindow_.displaySettingsChanged();
+               displaySettings_.setActive(c, activeChannel.equals(c));
+               display_.getGUIManager().updateGUIFromDisplaySettings();
             }
          }
-
       }
    }
 

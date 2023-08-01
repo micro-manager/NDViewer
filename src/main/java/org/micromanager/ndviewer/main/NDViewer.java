@@ -89,6 +89,8 @@ public class NDViewer implements NDViewerAPI {
 
    public NDViewer(NDViewerDataSource dataSource, NDViewerAcqInterface acq, JSONObject summaryMD,
                    double pixelSize, boolean rgb, String preferencesKey) {
+
+      
       dataSource_ = dataSource;
       pixelSizeUm_ = pixelSize; //TODO: Could be replaced later with per image pixel size
       summaryMetadata_ = summaryMD;

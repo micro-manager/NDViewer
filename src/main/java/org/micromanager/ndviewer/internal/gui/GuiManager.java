@@ -190,4 +190,7 @@ public class GuiManager {
 
    }
 
+   public void updateGUIFromDisplaySettings() {
+      displayWindow_.updateActiveChannelCheckboxes();
+   }
 }
